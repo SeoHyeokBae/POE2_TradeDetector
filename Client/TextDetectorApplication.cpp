@@ -6,6 +6,7 @@
 #include <iostream>
 #include <curl/curl.h>
 #include <leptonica/allheaders.h>
+#include <regex>
 
 HWND TextDetectorApplication::hWnd = NULL;
 HWND TextDetectorApplication::hEditLog = NULL;
@@ -13,8 +14,10 @@ LogFuncPtr TextDetectorApplication::LogFunc = nullptr;
 LogTimeFuncPtr TextDetectorApplication::LogTimeFunc = nullptr;
 
 tesseract::TessBaseAPI* TextDetectorApplication::tessAPI = nullptr;
+std::wstring TextDetectorApplication::wLastDetectedTime = L"";
 bool TextDetectorApplication::bFirstLogDone = false;
 bool TextDetectorApplication::bClearLogDone = false;
+bool TextDetectorApplication::bAlreadySent = false;
 
 // 한글 변환 (wstring to utf8)
 std::string WStringToUtf8(const std::wstring& wstr)
@@ -35,13 +38,11 @@ void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, L
     LogTimeFunc = timefunc;
 
     // Tesseract API 초기화
+    // 실패시 1반환 -> 메세지 출력
     tessAPI = new tesseract::TessBaseAPI();
     if (tessAPI->Init("C:/Program Files/Tesseract-OCR/tessdata", "kor+eng"))
     {
-        if (LogFunc && LogTimeFunc)
-        {
-            LogFunc(hEditLog, LogTimeFunc() + L" Tesseract 초기화 실패\r\n");
-        }
+        MessageBox(nullptr, L"Tesseract 초기화 실패", L"Tesseract 초기화 실패", MB_OK);
         return;
     }
 }
@@ -79,6 +80,7 @@ void TextDetectorApplication::Run()
 
     if (dwNow - dwLastCaptureTime >= 5000) // 5초마다 캡처
     {
+        bAlreadySent = false;
         dwLastCaptureTime = dwNow;
         HBITMAP CaptureBMP = CaptureScreenToBitmap(); // 캡처 실행
         
@@ -151,19 +153,17 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
 
-    // 텍스트용
-    //curl_easy_setopt(curl, CURLOPT_URL, url);
-    //curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    //curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
-
+    // 메세지 전송 오류출력
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) 
+    const char* errMsg = curl_easy_strerror(res);
+    if (res != CURLE_OK)
     {
-        // 에러 메세지 출력 필요
-        // 
-        //OutputDebugStringA("curl_easy_perform() failed: ");
-        //OutputDebugStringA(curl_easy_strerror(res));
-        //OutputDebugStringA("\n");
+        //wchar_t buffer[256];
+        //swprintf_s(buffer, 256, L"Discord 메세지 전송 실패\n오류코드: %d", static_cast<int>(res));
+        //MessageBox(nullptr, buffer, L"Discord 메세지 전송 실패", MB_OK);
+        wchar_t wideMsg[512];
+        swprintf_s(wideMsg, 512, L"Discord 메세지 전송 실패\n오류코드: %d\n설명: %S", res, errMsg);
+        MessageBox(nullptr, wideMsg, L"Discord 메세지 전송 실패", MB_OK);
     }
 
     curl_slist_free_all(headers);
@@ -180,19 +180,27 @@ void TextDetectorApplication::DoScreenOCR(cv::Mat image)
     std::wstring wText(utf8Len, 0);
     MultiByteToWideChar(CP_UTF8, 0, outText, -1, &wText[0], utf8Len);
 
-
-
-    if (wText.find(L"구매") != std::wstring::npos)
+    if (!bAlreadySent && wText.find(L"구매") != std::wstring::npos)
     {
-        if (LogFunc && LogTimeFunc)
-        {
-            LogFunc(hEditLog, LogTimeFunc() + L" 감지됨: 구매자 발견!\r\n");
-        }
+        // 최근 메세지 시간 받아오기
+        std::wstring latestTime;
+        GetDeliveryTime(wText, latestTime);
 
-        // 캡처이미지 저장
-        cv::imwrite("screenshot.png", image);
-        SendDiscordMessage(L"감지됨: 구매하고 싶습니다!");
-        //bAlreadySent = true;
+        if (!latestTime.empty() && latestTime != wLastDetectedTime)
+        {
+            // 최근 메세지 시간 저장
+            wLastDetectedTime = latestTime;
+
+            if (LogFunc && LogTimeFunc)
+            {
+                LogFunc(hEditLog, LogTimeFunc() + L" 감지됨: 구매자 발견!\r\n");
+            }
+
+            // 캡처이미지 저장
+            cv::imwrite("screenshot.png", image);
+            SendDiscordMessage(L"감지됨: 구매하고 싶습니다!");
+            bAlreadySent = true;
+        }
     }
 }
 
@@ -286,6 +294,36 @@ const std::wstring TextDetectorApplication::LoadWebhookFromFile()
     //return url;
 
     return std::wstring();
+}
+
+void TextDetectorApplication::GetDeliveryTime(const std::wstring& text, std::wstring& getTime)
+{
+    if (text.empty())
+    {
+        MessageBox(nullptr, L"TEXT 추출 실패", L"TEXT 내용 없음", MB_OK);
+        return ;
+    }
+
+    // 정규식을 이용해 [시:분] 형식의 문자열 찾기
+    std::wregex timeRegex(LR"(\[(\d{1,2}):(\d{2})\])");
+    std::wsregex_iterator iter(text.begin(), text.end(), timeRegex);
+    std::wsregex_iterator end;
+
+    int maxHour = -1, maxMinute = -1;
+
+    for (; iter != end; ++iter)
+    {
+        int hour = std::stoi((*iter)[1]);
+        int minute = std::stoi((*iter)[2]);
+
+        // 시간 비교
+        if (hour > maxHour || (hour == maxHour && minute > maxMinute))
+        {
+            maxHour = hour;
+            maxMinute = minute;
+            getTime = iter->str(); // [시:분] 전체 문자열
+        }
+    }
 }
 
 void TextDetectorApplication::Release()

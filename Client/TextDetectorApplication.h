@@ -28,9 +28,13 @@ public:
 	static void  CleanLogExceptLatestDetections();
 	// Webhook 링크 파일 체크
 	static const std::wstring LoadWebhookFromFile();
+    // 최근 메세지 도착시간 찾기
+    static void GetDeliveryTime(const std::wstring& text, std::wstring& getTime);
 
-	static bool bFirstLogDone;
+    static std::wstring wLastDetectedTime;
+    static bool bFirstLogDone;
 	static bool bClearLogDone;
+	static bool bAlreadySent;
 
 private:
 	static HWND hWnd;

@@ -23,6 +23,7 @@ HWND hButtonSetWebhook;
 std::wstring g_WebhookUrl;
 
 bool bIsDetecting = false;
+const wchar_t* ORIGINAL_TITLE = L"POE2_TradeDetector";
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -160,7 +161,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int startX = screenX / 2; // 오른쪽 절반 시작 위치
    int startY = screenY / 4;
 
-   HWND hWnd = CreateWindowW(szWindowClass, L"POE2_Message", WS_OVERLAPPEDWINDOW,
+   HWND hWnd = CreateWindowW(szWindowClass, ORIGINAL_TITLE, WS_OVERLAPPEDWINDOW,
        startX + 50, startY, 500, 475, nullptr, nullptr, hInstance, nullptr);
 
    // 기능함수 초기화
@@ -179,9 +180,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
     static HWND hButtonStop;
-    static const wchar_t* ORIGINAL_TITLE = L"POE2_Message";
 
     switch (message)
     {
