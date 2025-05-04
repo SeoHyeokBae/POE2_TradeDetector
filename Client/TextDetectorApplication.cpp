@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <stdio.h>
+#include <iostream>
 #include <curl/curl.h>
 #include <leptonica/allheaders.h>
 
@@ -272,6 +273,19 @@ void TextDetectorApplication::CleanLogExceptLatestDetections()
 
     // 로그 업데이트
     SetWindowText(hEditLog, newLog.c_str());
+}
+
+const std::wstring TextDetectorApplication::LoadWebhookFromFile()
+{
+    //std::wifstream infile(L"webhook.txt");
+    //std::wstring url;
+    //if (infile)
+    //{
+    //    std::getline(infile, url);
+    //}
+    //return url;
+
+    return std::wstring();
 }
 
 void TextDetectorApplication::Release()

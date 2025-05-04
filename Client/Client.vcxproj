@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Client.rc" />
+    <ResourceCompile Include="EditWebhook.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Client.ico" />

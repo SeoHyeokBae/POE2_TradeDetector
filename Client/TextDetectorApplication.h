@@ -26,7 +26,8 @@ public:
 	static void SendDiscordMessage(const std::wstring& message);
 	// 로그 정리
 	static void  CleanLogExceptLatestDetections();
-
+	// Webhook 링크 파일 체크
+	static const std::wstring LoadWebhookFromFile();
 
 	static bool bFirstLogDone;
 	static bool bClearLogDone;

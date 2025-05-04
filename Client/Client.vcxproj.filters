@@ -30,11 +30,14 @@
       <Filter>Windows\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="TextDetectorApplication.h">
-      <Filter>Windows\헤더 파일</Filter>
+      <Filter>Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Client.rc">
+      <Filter>Windows\리소스 파일</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="EditWebhook.rc">
       <Filter>Windows\리소스 파일</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -48,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="TextDetectorApplication.cpp" />
+    <ClCompile Include="TextDetectorApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

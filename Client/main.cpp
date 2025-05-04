@@ -18,6 +18,9 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 HWND hButtonStart;
 HWND hEditLog;
+HWND hEditWebhook;
+HWND hButtonSetWebhook;
+std::wstring g_WebhookUrl;
 
 bool bIsDetecting = false;
 
@@ -26,6 +29,8 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
+INT_PTR CALLBACK    ChildDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 // 현재 시간 문자열 생성 함수
@@ -156,7 +161,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int startY = screenY / 4;
 
    HWND hWnd = CreateWindowW(szWindowClass, L"POE2_Message", WS_OVERLAPPEDWINDOW,
-       startX + 50, startY, 500, 450, nullptr, nullptr, hInstance, nullptr);
+       startX + 50, startY, 500, 475, nullptr, nullptr, hInstance, nullptr);
 
    // 기능함수 초기화
    //application.Initialize(hWnd, hEditLog, AppendLog, GetCurrentTimestamp);
@@ -196,6 +201,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             20, 60, 440, 280,
             hWnd, (HMENU)IDC_LOG_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr
         );
+
+        // 읽기 전용 텍스트 박스
+        hEditWebhook = CreateWindowEx(
+            WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_AUTOHSCROLL | WS_BORDER,
+            20, 360, 355, 27, hWnd, (HMENU)IDC_WEBHOOK_EDIT, hInst, nullptr
+        );
+
+        // 등록/변경 버튼
+        hButtonSetWebhook = CreateWindow(
+            L"BUTTON", L"등록", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            400, 360, 60, 27, hWnd, (HMENU)IDC_SET_BUTTON, hInst, nullptr
+        );
+
+        // 초기 webhook 파일 로드
+        //g_WebhookUrl = LoadWebhookFromFile();
+        if (!g_WebhookUrl.empty())
+        {
+            SetWindowText(hEditWebhook, g_WebhookUrl.c_str());
+            SetWindowText(hButtonSetWebhook, L"변경");
+        }
+        else
+        {
+            SetWindowText(hEditWebhook, L"Discord Webhook 주소를 등록 해주세요");
+            SetWindowText(hButtonSetWebhook, L"등록");
+        }
         break;
 
     case WM_COMMAND:
@@ -240,6 +270,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hButtonStop = nullptr;
                 break;
 
+            case IDC_SET_BUTTON:
+            {
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_WEBHOOK_DIALOG), hWnd, ChildDialogProc);
+            }
+
+            break;
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
@@ -284,6 +320,55 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             return (INT_PTR)TRUE;
         }
         break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+// Webhook 등록/변경 창 프로시저
+INT_PTR CALLBACK ChildDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        // 기존 Webhook 주소가 있으면 EditBox에 표시
+        if (!g_WebhookUrl.empty())
+        {
+            SetDlgItemText(hDlg, IDC_EDITWEBHOOK_EDIT, g_WebhookUrl.c_str());
+        }
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_CHILD_OK:
+        {
+            wchar_t buffer[512];
+            GetDlgItemText(hDlg, IDC_EDITWEBHOOK_EDIT, buffer, 512);
+            g_WebhookUrl = buffer;
+
+            // 메인 창의 EditBox와 버튼 텍스트 업데이트
+            SetWindowText(hEditWebhook, g_WebhookUrl.c_str());
+            SetWindowText(hButtonSetWebhook, L"변경");
+
+            // 파일에 저장
+            //std::wofstream outFile(L"webhook.txt");
+            //if (outFile)
+            //{
+            //    outFile << g_WebhookUrl;
+            //}
+
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        case IDCANCEL:  // ESC나 닫기 버튼 눌렀을 때
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+
+    case WM_CLOSE:
+        EndDialog(hDlg, IDCANCEL);
+        return (INT_PTR)TRUE;
     }
     return (INT_PTR)FALSE;
 }
