@@ -1,9 +1,8 @@
 ﻿// Client.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
-
+#include "pch.h"
 #include "framework.h"
 #include "Client.h"
-#include "string"
 #include <ctime>
 
 #include "TextDetectorApplication.h"
@@ -214,14 +213,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         );
 
         // 초기 webhook 파일 로드
-        //g_WebhookUrl = LoadWebhookFromFile();
+        g_WebhookUrl = TextDetectorApplication::LoadWebhookFromFile();
         if (!g_WebhookUrl.empty())
         {
             SetWindowText(hEditWebhook, g_WebhookUrl.c_str());
+
+            if (g_WebhookUrl.find(L"주소를 등록 해주세요") != std::wstring::npos)
+            {
+                SetWindowText(hButtonSetWebhook, L"등록");
+            }
             SetWindowText(hButtonSetWebhook, L"변경");
         }
         else
         {
+            TextDetectorApplication::SaveWebhookFromFile(L"Discord Webhook 주소를 등록 해주세요");
             SetWindowText(hEditWebhook, L"Discord Webhook 주소를 등록 해주세요");
             SetWindowText(hButtonSetWebhook, L"등록");
         }
@@ -346,6 +351,7 @@ INT_PTR CALLBACK ChildDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
             g_WebhookUrl = buffer;
 
             // 메인 창의 EditBox와 버튼 텍스트 업데이트
+            TextDetectorApplication::SaveWebhookFromFile(g_WebhookUrl);
             SetWindowText(hEditWebhook, g_WebhookUrl.c_str());
             SetWindowText(hButtonSetWebhook, L"변경");
 

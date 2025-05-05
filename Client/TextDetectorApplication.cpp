@@ -1,12 +1,8 @@
-﻿#include "TextDetectorApplication.h"
-#include <windows.h>
-#include <string>
-#include <vector>
-#include <stdio.h>
-#include <iostream>
+﻿#include "pch.h"
+#include "TextDetectorApplication.h"
+#include "func.h"
 #include <curl/curl.h>
 #include <leptonica/allheaders.h>
-#include <regex>
 
 HWND TextDetectorApplication::hWnd = NULL;
 HWND TextDetectorApplication::hEditLog = NULL;
@@ -19,16 +15,8 @@ bool TextDetectorApplication::bFirstLogDone = false;
 bool TextDetectorApplication::bClearLogDone = false;
 bool TextDetectorApplication::bAlreadySent = false;
 
-// 한글 변환 (wstring to utf8)
-std::string WStringToUtf8(const std::wstring& wstr)
-{
-    if (wstr.empty()) return {};
+std::wstring TextDetectorApplication::webhookurl= L"";
 
-    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-    std::string result(sizeNeeded - 1, 0); // -1 to exclude null terminator
-    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &result[0], sizeNeeded, nullptr, nullptr);
-    return result;
-}
 
 void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, LogFuncPtr func, LogTimeFuncPtr timefunc)
 {
@@ -123,7 +111,8 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
     if (!curl) return;
 
     // text채널 설정에서 웹훅 url
-    const std::string webhook_url = "https://discord.com/api/webhooks/1367564424298233999/F-I5tGFqM8suQ9m64yNicJao8PGDK_Q2STvR79QRK00IL78yY3S-Lbaa9RF8nDA_CWeF";
+    //const std::string webhook_url = "https://discord.com/api/webhooks/1367564424298233999/F-I5tGFqM8suQ9m64yNicJao8PGDK_Q2STvR79QRK00IL78yY3S-Lbaa9RF8nDA_CWeF";
+    const std::string webhook_url = ToString(webhookurl);
     const char* url = webhook_url.c_str();
 
     std::string utf8_message = WStringToUtf8(message);
@@ -198,6 +187,7 @@ void TextDetectorApplication::DoScreenOCR(cv::Mat image)
 
             // 캡처이미지 저장
             cv::imwrite("screenshot.png", image);
+            // 디스코드 메세지 전송
             SendDiscordMessage(L"감지됨: 구매하고 싶습니다!");
             bAlreadySent = true;
         }
@@ -285,15 +275,27 @@ void TextDetectorApplication::CleanLogExceptLatestDetections()
 
 const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 {
-    //std::wifstream infile(L"webhook.txt");
-    //std::wstring url;
-    //if (infile)
-    //{
-    //    std::getline(infile, url);
-    //}
-    //return url;
+    FILE* pFile = nullptr;
+    _wfopen_s(&pFile, L"webhookurl.txt", L"rb");
+    if (!pFile) { return L"";}
+    wstring URL;
+    LoadWString(URL, pFile);
+    fclose(pFile);
 
-    return std::wstring();
+    return URL;
+}
+
+void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
+{
+    FILE* pFile = nullptr;
+    _wfopen_s(&pFile, L"webhookurl.txt", L"wb");
+    if (!pFile) 
+    { 
+        MessageBox(nullptr, L"URL 조회 실패", L"webhookurl.txt 파일 생성 실패", MB_OK);
+    }
+    SaveWString(url, pFile);
+    webhookurl = url;
+    fclose(pFile);
 }
 
 void TextDetectorApplication::GetDeliveryTime(const std::wstring& text, std::wstring& getTime)

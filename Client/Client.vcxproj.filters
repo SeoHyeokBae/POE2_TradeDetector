@@ -32,6 +32,18 @@
     <ClInclude Include="TextDetectorApplication.h">
       <Filter>Application</Filter>
     </ClInclude>
+    <ClInclude Include="CSaveLoad.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Windows\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="func.h">
+      <Filter>Windows\헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Client.rc">
@@ -54,5 +66,10 @@
     <ClCompile Include="TextDetectorApplication.cpp">
       <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="CSaveLoad.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="func.cpp" />
   </ItemGroup>
 </Project>

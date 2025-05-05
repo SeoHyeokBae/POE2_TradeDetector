@@ -28,6 +28,7 @@ public:
 	static void  CleanLogExceptLatestDetections();
 	// Webhook 링크 파일 체크
 	static const std::wstring LoadWebhookFromFile();
+	static void SaveWebhookFromFile(const std::wstring& url);
     // 최근 메세지 도착시간 찾기
     static void GetDeliveryTime(const std::wstring& text, std::wstring& getTime);
 
@@ -44,5 +45,7 @@ private:
 	static LogFuncPtr LogFunc;
 	// 로그 시간 출력 함수
 	static LogTimeFuncPtr LogTimeFunc;
+
+    static wstring webhookurl;
 };
 
