@@ -21,3 +21,6 @@ using namespace Microsoft::WRL;
 using namespace std::experimental;
 using namespace std::experimental::filesystem;
 using std::experimental::filesystem::path;
+
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "gdi32.lib")

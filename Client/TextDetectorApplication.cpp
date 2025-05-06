@@ -276,9 +276,10 @@ void TextDetectorApplication::CleanLogExceptLatestDetections()
 const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"webhookurl.txt", L"rt");
+    //_wfopen_s(&pFile, L"webhookurl.txt", L"rt");
+    _wfopen_s(&pFile, L"webhookurl.txt", L"rt, ccs=UTF-16LE");
 
-    if (!pFile) { fclose(pFile); return L"";}
+    if (!pFile) {return L"";}
 
     wstring URL;
     wchar_t szBuff[1024] = {};
@@ -304,7 +305,8 @@ const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"webhookurl.txt", L"w");
+    //_wfopen_s(&pFile, L"webhookurl.txt", L"w");
+    _wfopen_s(&pFile, L"webhookurl.txt", L"w, ccs=UTF-16LE");
     if (!pFile) 
     { 
         MessageBox(nullptr, L"URL 조회 실패", L"webhookurl.txt 파일 생성 실패", MB_OK);

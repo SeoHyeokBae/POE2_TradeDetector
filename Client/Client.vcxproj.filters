@@ -57,7 +57,7 @@
     <Image Include="small.ico">
       <Filter>Windows\리소스 파일</Filter>
     </Image>
-    <Image Include="Client.ico">
+    <Image Include="Chaos_Orb.ico">
       <Filter>Windows\리소스 파일</Filter>
     </Image>
   </ItemGroup>
@@ -69,7 +69,11 @@
     <ClCompile Include="CSaveLoad.cpp">
       <Filter>Application</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="func.cpp" />
+    <ClCompile Include="func.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
