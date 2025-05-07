@@ -27,8 +27,10 @@ void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, L
 
     // Tesseract API 초기화
     // 실패시 1반환 -> 메세지 출력
+    // 기존 아래 경로에서 Tesseract 설치없이 핵심 data파일/폴더만
+    // C:/Program Files/Tesseract-OCR/tessdata
     tessAPI = new tesseract::TessBaseAPI();
-    if (tessAPI->Init("C:/Program Files/Tesseract-OCR/tessdata", "kor+eng"))
+    if (tessAPI->Init("tessdata", "kor+eng"))
     {
         MessageBox(nullptr, L"Tesseract 초기화 실패", L"Tesseract 초기화 실패", MB_OK);
         return;
@@ -79,6 +81,8 @@ void TextDetectorApplication::Run()
 
         DeleteObject(CaptureBMP);
     }
+
+    Sleep(1);
 }
 
 HBITMAP TextDetectorApplication::CaptureScreenToBitmap()
