@@ -18,6 +18,9 @@ bool TextDetectorApplication::bAlreadySent = false;
 std::wstring TextDetectorApplication::webhookurl= L"";
 
 
+std::atomic<bool> g_bIsTaskRunning = false;
+std::future<void> g_futureTask;
+
 void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, LogFuncPtr func, LogTimeFuncPtr timefunc)
 {
     hWnd = Input_hWnd;
@@ -70,19 +73,25 @@ void TextDetectorApplication::Run()
 
     if (dwNow - dwLastCaptureTime >= 5000) // 5초마다 캡처
     {
-        bAlreadySent = false;
         dwLastCaptureTime = dwNow;
-        HBITMAP CaptureBMP = CaptureScreenToBitmap(); // 캡처 실행
-        
-        // cv::Mat 변환
-        cv::Mat Image = HBitmapToMat(CaptureBMP);
 
-        DoScreenOCR(Image);
+        if (!g_bIsTaskRunning.exchange(true))
+        {
+            g_futureTask = std::async(std::launch::async, [&]()
+                {
+                    bAlreadySent = false;
+                    // 캡처 실행
+                    HBITMAP CaptureBMP = CaptureScreenToBitmap();
+                    // cv::Mat 변환
+                    cv::Mat Image = HBitmapToMat(CaptureBMP);
 
-        DeleteObject(CaptureBMP);
+                    DoScreenOCR(Image);
+                    DeleteObject(CaptureBMP);
+
+                    g_bIsTaskRunning.store(false);
+                });
+        }
     }
-
-    Sleep(1);
 }
 
 HBITMAP TextDetectorApplication::CaptureScreenToBitmap()

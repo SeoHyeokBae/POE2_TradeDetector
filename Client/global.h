@@ -9,6 +9,9 @@
 #include <iostream>
 #include <vector>
 #include <regex>
+#include <thread>
+#include <future>
+#include <atomic>
 
 using std::wstring;
 using std::string;

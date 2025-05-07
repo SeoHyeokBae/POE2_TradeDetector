@@ -96,7 +96,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             {
                 //application.Run();
                 TextDetectorApplication::Run();
-               
+
+                Sleep(1);
             }
 
             //if (FAILED(application.GetExit()))
