@@ -310,6 +310,7 @@ const std::wstring TextDetectorApplication::LoadWebhookFromFile()
         URL = L""; 
     }
 
+    webhookurl = URL;
     fclose(pFile);
 
     return URL;

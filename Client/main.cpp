@@ -356,13 +356,6 @@ INT_PTR CALLBACK ChildDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
             SetWindowText(hEditWebhook, g_WebhookUrl.c_str());
             SetWindowText(hButtonSetWebhook, L"변경");
 
-            // 파일에 저장
-            //std::wofstream outFile(L"webhook.txt");
-            //if (outFile)
-            //{
-            //    outFile << g_WebhookUrl;
-            //}
-
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
