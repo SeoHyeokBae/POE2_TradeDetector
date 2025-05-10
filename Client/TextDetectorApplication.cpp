@@ -124,16 +124,11 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
     if (!curl) return;
 
     // text채널 설정에서 웹훅 url
-    //const std::string webhook_url = "https://discord.com/api/webhooks/1367564424298233999/F-I5tGFqM8suQ9m64yNicJao8PGDK_Q2STvR79QRK00IL78yY3S-Lbaa9RF8nDA_CWeF";
     const std::string webhook_url = ToString(webhookurl);
     const char* url = webhook_url.c_str();
 
     std::string utf8_message = WStringToUtf8(message);
     std::string json_data = "{\"content\":\"" + utf8_message + "\"}";
-
-    struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-
 
     struct curl_httppost* post = nullptr;
     struct curl_httppost* last = nullptr;
@@ -168,7 +163,6 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
         MessageBox(nullptr, wideMsg, L"Discord 메세지 전송 실패", MB_OK);
     }
 
-    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 }
 
@@ -289,7 +283,6 @@ void TextDetectorApplication::CleanLogExceptLatestDetections()
 const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 {
     FILE* pFile = nullptr;
-    //_wfopen_s(&pFile, L"webhookurl.txt", L"rt");
     _wfopen_s(&pFile, L"webhookurl.txt", L"rt, ccs=UTF-16LE");
 
     if (!pFile) {return L"";}
@@ -319,7 +312,6 @@ const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
 {
     FILE* pFile = nullptr;
-    //_wfopen_s(&pFile, L"webhookurl.txt", L"w");
     _wfopen_s(&pFile, L"webhookurl.txt", L"w, ccs=UTF-16LE");
     if (!pFile) 
     { 
