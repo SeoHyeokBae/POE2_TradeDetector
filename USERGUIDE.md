@@ -6,10 +6,11 @@
 - [프로그램 한계](#프로그램-한계)
 ## 사용환경
 ###### 더블 모니터에서 메인 모니터 화면 캡처
-#### <code>**채팅창 옵션**</code> $\bf{\small{\color{#808080}(POE2\ 0.2.0g버전)}}$
-<img src=https://github.com/user-attachments/assets/082e752f-b8cc-49c3-afb5-d19997e44888 width="521" height="350">
+#### <code>**채팅창 옵션**</code> $\bf{\small{\color{#808080}(POE2\ 0.2.0g버전)}}$  
+- **"채팅 입력 시간 보기"** ***필수*** 체크  
+<img src=https://github.com/user-attachments/assets/c50548b9-4820-49e7-bedc-4daeaedf7b96 width="521" height="350">
 
-#### <code>**성소 은신처**</code> $\bf{\small{\color{#808080}(어두운\ 배경:\ 문자\ 인식\ 잘되게)}}$
+#### <code>**성소 은신처**</code> $\bf{\small{\color{#808080}(어두운\ 배경:\ 문자의\ 정확도를\ 높여줌)}}$
 ![성소은신처](https://github.com/user-attachments/assets/82649e74-75ed-4b65-895b-87296299b7ef)
 
 ## 사용방법
@@ -25,7 +26,7 @@
 ### 2.  실행
 - <code>***POE2_TradeMsg.exe***</code>파일 실행합니다.  
 &nbsp;![실행파일](https://github.com/user-attachments/assets/78d59c99-b066-4d66-869b-6421438114ab)  
-&nbsp;<img src=https://github.com/user-attachments/assets/5f82c29b-94ee-46a2-a8f5-ee6be2bd3fe9 width="365" height="350">
+&nbsp;<img src=https://github.com/user-attachments/assets/90fa767a-6848-4fa8-b1fc-bacd6498babf width="365" height="350">
 
 - <code>**등록**</code> 또는 <code>**변경**</code> 에서 디스코드 <code>**웹후크**</code>주소를 입력합니다.  
 ![등록](https://github.com/user-attachments/assets/edd279e7-2ec0-4c99-9094-99f54427b65a)  
@@ -33,8 +34,20 @@
 ![실행](https://github.com/user-attachments/assets/f6fa7387-1165-4d84-abe0-2d42fdc7e53f)
 
 ### 3.  테스트
--  <code>**인게임 테스트**</code>
--  <code>**게임을 실행하지 않은 경우**</code>
+- <code>**인게임 테스트**</code>$\bf{\small{\color{#808080}(게임에서\ "구매"\ 채팅\ 입력)}}$  
+&nbsp;<img src=https://github.com/user-attachments/assets/f9254bb3-5be5-4837-a047-c66ff690bce0 width="450" height="450">
+
+- <code>**게임을 실행하지 않은 경우**</code>$\bf{\small{\color{#808080}(메모장에서\ [시:분]\ "구매"\ 입력)}}$  
+&nbsp;<img src=https://github.com/user-attachments/assets/8482996c-1770-4ff6-bee5-7848f634a9c3 width="450" height="461">
+
+### 4. 확인
+- <code>**디스코드**</code> 알림 또는 앱을 실행해 수시로 확인이 가능합니다.  
+&nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/08c92039-6f84-41c1-aba7-9d6b97a8c9b3 width="311" height="600"></p>
+
+### Tip.
+- 텍스트화는 메인 화면 절반 좌측 이미지로 진행됩니다.
+- OCR은 배경과 글자의 대비가 클수록 정확도가 높아집니다. $\bf{\small{\color{#808080}(어두운\ 지형\ 권장)}}$ 
+- 시작하기 전 채팅창에 ***"구매"*** 가 있는경우<code>**/clear**</code>으로 채팅창을 비워주세요.
 
 ## 백그라운드 기능
 #### <code>**메시지**</code>
