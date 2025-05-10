@@ -6,32 +6,55 @@
 - [프로그램 한계](#프로그램-한계)
 ## 사용환경
 ###### 더블 모니터에서 메인 모니터 화면 캡처
-#### 채팅창 옵션 $\bf{\small{\color{#808080}(POE2\ 0.2.0g버전)}}$
+#### <code>**채팅창 옵션**</code> $\bf{\small{\color{#808080}(POE2\ 0.2.0g버전)}}$
 <img src=https://github.com/user-attachments/assets/082e752f-b8cc-49c3-afb5-d19997e44888 width="521" height="350">
 
-#### 성소은신처 $\bf{\small{\color{#808080}(어두운\ 배경:\ 문자\ 인식\ 잘되게)}}$
+#### <code>**성소 은신처**</code> $\bf{\small{\color{#808080}(어두운\ 배경:\ 문자\ 인식\ 잘되게)}}$
 ![성소은신처](https://github.com/user-attachments/assets/82649e74-75ed-4b65-895b-87296299b7ef)
 
 ## 사용방법
+### 1.  디스코드 웹후크
+- <code>**디스코드 웹후크**</code>**생성**
+  + 디스코드<code>**서버, 채팅 채널**</code>을 생성합니다.  
+![서버추가](https://github.com/user-attachments/assets/d1b7322e-f1fd-4b9d-8dc0-fc1643ab1364)
+  + 채팅 채널 설정에서 웹후크를 생성한 후 <code>**웹후크 URL을 복사**</code> 합니다.  
+![채널편집](https://github.com/user-attachments/assets/6e5af7cd-7399-43e6-89ee-681505f17123)
+&nbsp;&nbsp;![연동](https://github.com/user-attachments/assets/b3bcbddb-bd1e-49a9-bc75-dfd81ef9bfd0)  
+&nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/d4a2847c-591f-4c32-ac93-6c26ff75317f width="445" height="450">
+
+### 2.  실행
+- <code>***POE2_TradeMsg.exe***</code>파일 실행합니다.  
+&nbsp;![실행파일](https://github.com/user-attachments/assets/78d59c99-b066-4d66-869b-6421438114ab)  
+&nbsp;<img src=https://github.com/user-attachments/assets/5f82c29b-94ee-46a2-a8f5-ee6be2bd3fe9 width="365" height="350">
+
+- <code>**등록**</code> 또는 <code>**변경**</code> 에서 디스코드 <code>**웹후크**</code>주소를 입력합니다.  
+![등록](https://github.com/user-attachments/assets/edd279e7-2ec0-4c99-9094-99f54427b65a)  
+- <code>**시작**</code>버튼을 눌러 감지를 시작합니다.  
+![실행](https://github.com/user-attachments/assets/f6fa7387-1165-4d84-abe0-2d42fdc7e53f)
+
+### 3.  테스트
+-  <code>**인게임 테스트**</code>
+-  <code>**게임을 실행하지 않은 경우**</code>
+
 ## 백그라운드 기능
-#### 메시지
+#### <code>**메시지**</code>
 - **5초** 간격으로 메시지를 체크
 - **[시:분]** 과 ***"구매"*** 텍스트가 함께 있어야 메시지가 전송됨
 - 최근 메시지의 **[시:분]** 을 기록하여 중복 전송을 방지
-#### 파일
+#### <code>**파일**</code>
 - 최초 시작 시 ***"webhookurl.txt"*** 생성 $\bf{\small{\color{#808080}(.txt에서\ url\ 직접\ 수정\ 가능)}}$
-- 메시지가 감지되면 ***"screenshot.png"*** 생성, 이후 이미지는 덮어씀
-#### 로그 $\bf{\small{\color{#808080}(감지\ 시작\ 이후)}}$
+- ***"구매"*** 가 감지되고 디스코드로 메시지를 전송할때 ***"screenshot.png"*** 생성 $\bf{\small{\color{#808080}(이후\ 이미지는\ 덮어씀)}}$
+#### <code>**로그**</code> $\bf{\small{\color{#808080}(감지\ 시작\ 이후)}}$
 - 20분 간격으로 ***"실시간 감지중 ..."*** 로그창에 메시지 기록
 - 3시간 간격으로 ***"감지 시작"*** 과 마지막 ***"실시간 감지중"*** 메시지를 **제외**한 기록 제거
 ## 프로그램 한계
-###### 대부분 낮은 한글 인식에 *"구매"* 키워드를 사용하면서 
+###### 항상 정확하게 텍스트를 인식하지 못하는 점을 고려해 만들어짐
 #### • &nbsp;이미지를 텍스트화하는 과정에서 한글 인식률이 좋지 않음 $\bf{\small{\color{#808080}("구매"\ 키워드\ 선정\ 이유)}}$
 &nbsp; &nbsp;<img src=https://github.com/user-attachments/assets/41a620bb-2dbd-498b-999c-9e259a1299bd width="439" height="400">
 &nbsp; &nbsp;<img src=https://github.com/user-attachments/assets/0e05d5e3-3751-47ec-9ac1-9977bd5a6443 width="360" height="400">
 #### • &nbsp;분 단위 시간 기록을 하므로 같은 시간에 여러 메시지가 올 경우 누락될 수 있음
 #### • &nbsp;*"구매"* 라는 키워드와 함께 **[시:분]** 의 텍스트가 있다면 모두 반응하여 메시지를 보냄
-#### • &nbsp;*"구매"* 를 감지 했을때 내부 최근 메시지 시간은 가장 최근 메시지로 기록
+#### • &nbsp;*"구매"* 를 감지 했을때 내부 메시지 시간은 가장 최근 메시지 시간으로 기록
 &nbsp; &nbsp;<img src=https://github.com/user-attachments/assets/e7827838-6900-46c6-a7a7-1f7ac0d4186f width="640" height="200">  
-&nbsp; &nbsp; 위 경우 프로그램의 내부 최근 메시지 시간은 [16:39]에서 [16:40]으로 변경되어 메시지를 또 전송하게 됨  
+&nbsp; &nbsp; 위 경우 프로그램의 내부 최근 메시지 시간은 **[16:39]** 에서 **[16:40]** 으로 변경되어 메시지를 또 전송하게 됨  
 &nbsp; &nbsp; $\bf{\small{\color{#808080}(채팅창을\ 켰을\ 경우\ 해당하며\ 프로그램을\ 사용하는\ 보통의\ 상황에서는\ "구매"메시지가\ 사라진\ 이후이기\ 때문에\ 기록되지\ 않음)}}$
