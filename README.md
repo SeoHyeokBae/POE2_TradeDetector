@@ -11,7 +11,7 @@ OCR 기반으로 특정 키워드("구매")를 감지하고, 디스코드로 메
 - OpenCV 및 libcurl 사용
 <br/><br/>
 ## 개발환경
-###### VS2022 윈도우 어플리케이션에서 win Api와 c/c++으로 제작되었습니다.  
+###### 윈도우11, VS2022 윈도우 어플리케이션에서 win Api와 c/c++으로 제작되었습니다.  
 Tesseract OCR
 - [tesseract-ocr-w64-5.5](https://github.com/UB-Mannheim/tesseract/wiki "tesseract-ocr 다운로드")
 
