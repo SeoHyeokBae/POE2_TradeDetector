@@ -1,7 +1,7 @@
 # POE2 TradeDetector
 OCR 기반으로 특정 키워드("구매")를 감지하고, 디스코드로 메시지를 자동 전송하는 프로그램 입니다.  
 ###### 잠시 자리를 비운 사이에 꼭 거래 메시지가 오는 경우가 많아 중요한 거래 요청을 놓치지 않기 위해 제작됨
-### [다운로드](https://www.notion.so/Project-Mote-1240c0421f3b81dbbce1eb1e0baae067?pvs=4 ".exe 파일다운")
+### [다운로드]([https://www.notion.so/Project-Mote-1240c0421f3b81dbbce1eb1e0baae067?pvs=4](https://drive.google.com/file/d/1ZvTy3_kq-hP-dIx7PVxeHDAO3n31sX47/view?usp=drive_link) ".exe 파일다운")
 ### [사용방법](USERGUIDE.md "사용방법")  
 ## 기능 요약
 
