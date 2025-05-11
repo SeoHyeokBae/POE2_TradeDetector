@@ -4,6 +4,9 @@ OCR 기반으로 특정 키워드("구매")를 감지하고, 디스코드로 메
 ###### 휴대폰의 디스코드 앱에서 메시지 알림을 받거나 수시로 확인 가능
 ### [다운로드](https://drive.google.com/file/d/1ZvTy3_kq-hP-dIx7PVxeHDAO3n31sX47/view?usp=drive_link ".exe 파일다운")
 ### [사용방법](USERGUIDE.md "사용방법")  
+## 시연 영상
+https://github.com/user-attachments/assets/a443489d-1e08-4f84-89dc-0c3cf547d10a
+
 ## 기능 요약
 
 - 화면 절반(좌측)을 5초마다 캡처하여 Tesseract OCR로 분석
