@@ -12,6 +12,7 @@
 #include <thread>
 #include <future>
 #include <atomic>
+#include <commdlg.h>
 
 using std::wstring;
 using std::string;
@@ -27,3 +28,4 @@ using std::experimental::filesystem::path;
 
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "Comdlg32.lib")

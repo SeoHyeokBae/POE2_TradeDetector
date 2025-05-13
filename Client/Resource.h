@@ -16,7 +16,8 @@
 #define IDC_STOP_BUTTON                 1002
 #define IDC_LOG_EDIT                    2001
 #define IDC_WEBHOOK_EDIT                2002
-#define IDC_SET_BUTTON                  2003
+#define IDC_WEBHOOK_SET_BUTTON          2003
+#define IDC_CHATPATH_SET_BUTTON         2004
 #define IDC_EDITWEBHOOK_EDIT            3001
 #define IDC_CHILD_OK                    3002
 #define IDCANCEL                        3003

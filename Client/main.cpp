@@ -17,7 +17,11 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 HWND hButtonStart;
 HWND hEditLog;
+HWND hChatLabel;
+HWND hEditChatPath;
+HWND hButtonSetChatPath;
 HWND hEditWebhook;
+HWND hWebhookLabel;
 HWND hButtonSetWebhook;
 std::wstring g_WebhookUrl;
 
@@ -162,7 +166,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int startY = screenY / 4;
 
    HWND hWnd = CreateWindowW(szWindowClass, ORIGINAL_TITLE, WS_OVERLAPPEDWINDOW,
-       startX + 50, startY, 500, 475, nullptr, nullptr, hInstance, nullptr);
+       startX + 50, startY, 550, 475, nullptr, nullptr, hInstance, nullptr);
 
    // 기능함수 초기화
    //application.Initialize(hWnd, hEditLog, AppendLog, GetCurrentTimestamp);
@@ -186,33 +190,67 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
         // 시작 버튼
-        hButtonStart = CreateWindow(
+        hButtonStart = CreateWindow
+        (
             L"BUTTON", L"시작",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            20, 20, 100, 30,
+            20, 100, 100, 30,
             hWnd, (HMENU)IDC_START_BUTTON, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr
         );
 
         // 로그 출력 Edit 박스 (멀티라인)
-        hEditLog = CreateWindowEx(
+        hEditLog = CreateWindowEx
+        (
             WS_EX_CLIENTEDGE, L"EDIT", L"",
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
-            20, 60, 440, 280,
+            20, 140, 440, 250,
             hWnd, (HMENU)IDC_LOG_EDIT, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr
         );
 
-        // 읽기 전용 텍스트 박스
-        hEditWebhook = CreateWindowEx(
+        hChatLabel = CreateWindow
+        (
+            L"STATIC", L"채팅 파일 경로",
+            WS_CHILD | WS_VISIBLE,
+            20, 20, 105, 25, 
+            hWnd, nullptr, hInst, nullptr
+        );
+
+        // 채팅 경로 텍스트 박스
+        hEditChatPath = CreateWindowEx
+        (
             WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_AUTOHSCROLL | WS_BORDER,
-            20, 360, 355, 27, hWnd, (HMENU)IDC_WEBHOOK_EDIT, hInst, nullptr
+            130, 20, 225, 27, hWnd, (HMENU)IDC_WEBHOOK_EDIT, hInst, nullptr
+        );
+
+        // 찾아보기 버튼
+        hButtonSetChatPath = CreateWindow
+        (
+            L"BUTTON", L"찾아보기", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            360, 20, 100, 27, hWnd, (HMENU)IDC_CHATPATH_SET_BUTTON, hInst, nullptr
+        );
+
+        hWebhookLabel = CreateWindow
+        (
+            L"STATIC", L"Webhook URL",
+            WS_CHILD | WS_VISIBLE,
+            20, 60, 95, 25,
+            hWnd, nullptr, hInst, nullptr
+        );
+
+        // 웹훅 텍스트 박스
+        hEditWebhook = CreateWindowEx
+        (
+            WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_AUTOHSCROLL | WS_BORDER,
+            120, 60, 255, 27, hWnd, (HMENU)IDC_WEBHOOK_EDIT, hInst, nullptr
         );
 
         // 등록/변경 버튼
-        hButtonSetWebhook = CreateWindow(
+        hButtonSetWebhook = CreateWindow
+        (
             L"BUTTON", L"등록", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            400, 360, 60, 27, hWnd, (HMENU)IDC_SET_BUTTON, hInst, nullptr
+            400, 60, 60, 27, hWnd, (HMENU)IDC_WEBHOOK_SET_BUTTON, hInst, nullptr
         );
-
+        
         // 초기 webhook 파일 로드
         g_WebhookUrl = TextDetectorApplication::LoadWebhookFromFile();
         if (!g_WebhookUrl.empty())
@@ -232,6 +270,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetWindowText(hButtonSetWebhook, L"등록");
         }
         break;
+
+    case WM_SIZE:
+    {
+        int width = LOWORD(lParam);   // 현재 윈도우 너비
+        int height = HIWORD(lParam);  // 현재 윈도우 높이
+
+        // 고정 높이들
+        int margin = 20;
+        int labelHeight = 25;
+        int editHeight = 27;
+        int buttonHeight = 27;
+        int sectionGap = 15;
+
+        // 채팅 경로 라벨, 에디트, 버튼
+        int chatLabelWidth = 105;
+        int chatEditWidth = width - 3 * margin - chatLabelWidth - 100; // 100: 버튼 너비
+        MoveWindow(hChatLabel, margin, margin, chatLabelWidth, labelHeight, TRUE);
+        MoveWindow(hEditChatPath, margin + chatLabelWidth + 5, margin, chatEditWidth, editHeight, TRUE);
+        MoveWindow(hButtonSetChatPath, width - margin - 100, margin, 100, buttonHeight, TRUE);
+
+        // 웹훅 라벨, 에디트, 버튼
+        int webhookLabelTop = margin + editHeight + sectionGap;
+        MoveWindow(hWebhookLabel, margin, webhookLabelTop, chatLabelWidth, labelHeight, TRUE);
+        MoveWindow(hEditWebhook, margin + chatLabelWidth + 5, webhookLabelTop, chatEditWidth + 40, editHeight, TRUE);
+        MoveWindow(hButtonSetWebhook, width - margin - 60, webhookLabelTop, 60, buttonHeight, TRUE);
+
+        // 시작 버튼
+        int startButtonTop = webhookLabelTop + editHeight + sectionGap;
+        MoveWindow(hButtonStart, margin, startButtonTop, 100, 30, TRUE);
+
+
+        // 로그 에디트 박스
+        int logEditTop = startButtonTop + 30 + sectionGap;
+        int logEditHeight = height - logEditTop - margin;
+        if (logEditHeight < 0) logEditHeight = 0;
+        MoveWindow(hEditLog, margin, logEditTop, width - 2 * margin, logEditHeight, TRUE);
+
+        break;
+    }
+    // 최소 윈도우 크기 설정 (예: 너비 520, 높이 480)
+    case WM_GETMINMAXINFO:
+    {
+        MINMAXINFO* pMinMax = (MINMAXINFO*)lParam;
+
+        pMinMax->ptMinTrackSize.x = 280;
+        pMinMax->ptMinTrackSize.y = 300;
+
+        return 0; // 꼭 return 0 해주기
+    }
 
     case WM_COMMAND:
         {
@@ -253,7 +340,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hButtonStop = CreateWindow(
                     L"BUTTON", L"중지",
                     WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
-                    140, 20, 100, 30,
+                    140, 104, 100, 30,
                     hWnd, (HMENU)IDC_STOP_BUTTON, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr
                 );
                 break;
@@ -275,9 +362,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 hButtonStop = nullptr;
                 break;
 
-            case IDC_SET_BUTTON:
+            case IDC_WEBHOOK_SET_BUTTON:
             {
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_WEBHOOK_DIALOG), hWnd, ChildDialogProc);
+                break;
+            }
+
+            case IDC_CHATPATH_SET_BUTTON:
+            {
+                OPENFILENAME ofn;
+                wchar_t szFile[MAX_PATH] = { 0 };
+
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = hWnd;
+                ofn.lpstrFilter = L"Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+                ofn.lpstrFile = szFile;
+                ofn.nMaxFile = MAX_PATH;
+                ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+                ofn.lpstrTitle = L"채팅 로그 파일 선택";
+
+                if (GetOpenFileName(&ofn))
+                {
+                    // 선택된 경로를 Edit 박스에 표시
+                    SetWindowText(hEditChatPath, szFile);
+
+                    // 메모장에 기록해놔야함
+                    // webhook url 메모장 통합
+                    // ChatFilePath = szFile;
+                }
+                break;
             }
 
             break;
