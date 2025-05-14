@@ -13,7 +13,9 @@
 #include <future>
 #include <atomic>
 #include <commdlg.h>
-
+#include <codecvt>
+#include <string>
+#include <iostream>
 using std::wstring;
 using std::string;
 

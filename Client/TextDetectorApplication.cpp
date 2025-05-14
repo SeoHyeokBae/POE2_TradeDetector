@@ -2,21 +2,16 @@
 #include "TextDetectorApplication.h"
 #include "func.h"
 #include <curl/curl.h>
-#include <leptonica/allheaders.h>
 
 HWND TextDetectorApplication::hWnd = NULL;
 HWND TextDetectorApplication::hEditLog = NULL;
 LogFuncPtr TextDetectorApplication::LogFunc = nullptr;
 LogTimeFuncPtr TextDetectorApplication::LogTimeFunc = nullptr;
 
-tesseract::TessBaseAPI* TextDetectorApplication::tessAPI = nullptr;
-std::wstring TextDetectorApplication::wLastDetectedTime = L"";
-bool TextDetectorApplication::bFirstLogDone = false;
-bool TextDetectorApplication::bClearLogDone = false;
-bool TextDetectorApplication::bAlreadySent = false;
-
 std::wstring TextDetectorApplication::webhookurl= L"";
 std::wstring TextDetectorApplication::chatlog_path = L"";
+HANDLE TextDetectorApplication::hDir;
+bool TextDetectorApplication::bImageMode = false;
 
 std::atomic<bool> g_bIsTaskRunning = false;
 std::future<void> g_futureTask;
@@ -27,108 +22,138 @@ void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, L
     hEditLog = Input_hEditLog;
     LogFunc = func;
     LogTimeFunc = timefunc;
-
-    // Tesseract API 초기화
-    // 실패시 1반환 -> 메세지 출력
-    // 기존 아래 경로에서 Tesseract 설치없이 핵심 data파일/폴더만
-    // C:/Program Files/Tesseract-OCR/tessdata
-    tessAPI = new tesseract::TessBaseAPI();
-    if (tessAPI->Init("tessdata", "kor+eng"))
-    {
-        MessageBox(nullptr, L"Tesseract 초기화 실패", L"Tesseract 초기화 실패", MB_OK);
-        return;
-    }
-}
-
-cv::Mat HBitmapToMat(HBITMAP hBitmap)
-{
-    BITMAP bmp;
-    GetObject(hBitmap, sizeof(BITMAP), &bmp);
-
-    BITMAPINFOHEADER bi;
-    ZeroMemory(&bi, sizeof(BITMAPINFOHEADER));
-    bi.biSize = sizeof(BITMAPINFOHEADER);
-    bi.biWidth = bmp.bmWidth/2;
-    bi.biHeight = -bmp.bmHeight; // OpenCV는 top-down
-    bi.biPlanes = 1;
-    bi.biBitCount = 24;
-    bi.biCompression = BI_RGB;
-
-    cv::Mat mat(bmp.bmHeight, bmp.bmWidth/2, CV_8UC3);
-    HDC hDC = GetDC(NULL);
-    GetDIBits(hDC, hBitmap, 0, bmp.bmHeight, mat.data, (BITMAPINFO*)&bi, DIB_RGB_COLORS);
-    ReleaseDC(NULL, hDC);
-
-    return mat;
 }
 
 void TextDetectorApplication::Run()
 {
-    LogMessage();
-
-    static DWORD dwLastCaptureTime = 0;
-    DWORD dwNow = GetTickCount64();
-
-    if (dwLastCaptureTime == 0) dwLastCaptureTime = dwNow;
-
-    if (dwNow - dwLastCaptureTime >= 5000) // 5초마다 캡처
+    if (!g_bIsTaskRunning.exchange(true))
     {
-        dwLastCaptureTime = dwNow;
+        g_futureTask = std::async(std::launch::async, [&]()
+            {
+                static char buffer[1024];
+                static DWORD bytesReturned;
 
-        if (!g_bIsTaskRunning.exchange(true))
-        {
-            g_futureTask = std::async(std::launch::async, [&]()
+                if (ReadDirectoryChangesW(hDir, buffer, sizeof(buffer),
+                    FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE,
+                    &bytesReturned, NULL, NULL))
                 {
-                    bAlreadySent = false;
-                    // 캡처 실행
-                    HBITMAP CaptureBMP = CaptureScreenToBitmap();
-                    // cv::Mat 변환
-                    cv::Mat Image = HBitmapToMat(CaptureBMP);
+                    FILE_NOTIFY_INFORMATION* pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer);
+                    // 변경된 파일명 추출
+                    std::wstring changedFile(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
 
-                    DoScreenOCR(Image);
-                    DeleteObject(CaptureBMP);
+                    // 감시 대상 파일명
+                    std::wstring targetFile = filesystem::path(chatlog_path).filename().wstring();
 
-                    g_bIsTaskRunning.store(false);
-                });
-        }
+                    if (changedFile == targetFile)
+                    {
+                        FILE* pFile = nullptr;
+                        _wfopen_s(&pFile, chatlog_path.c_str(), L"rt, ccs=UTF-8");
+
+                        if (pFile)
+                        {
+                            wchar_t line[2048] = {};
+                            std::wstring lastChat;
+
+                            while (fgetws(line, sizeof(line) / sizeof(wchar_t), pFile))
+                            {
+                                // 개행 문자 제거
+                                size_t len = wcslen(line);
+                                if (len > 0 && line[len - 1] == L'\n')
+                                    line[len - 1] = L'\0';
+
+                                if (wcslen(line) > 0)
+                                    lastChat = line;
+                            }
+
+                            // 구매 메시지일 경우
+                            if (lastChat.find(L"구매하고 싶습니다") != std::wstring::npos 
+                                         && lastChat.find(L"@수신") != std::wstring::npos)
+                            {
+                                ParseTradeMessage(lastChat);
+                            }
+
+
+                            fclose(pFile);
+                        }
+                    }
+                }
+
+                g_bIsTaskRunning.store(false);
+            });
     }
 }
 
-HBITMAP TextDetectorApplication::CaptureScreenToBitmap()
+void TextDetectorApplication::ParseTradeMessage(const std::wstring& message)
 {
-    // 전체 화면 크기 가져오기
-    int screenX = GetSystemMetrics(SM_CXSCREEN);
-    int screenY = GetSystemMetrics(SM_CYSCREEN);
+    wstring sender, price, item;
 
-    // 디바이스 컨텍스트 생성
-    HDC hScreenDC = GetDC(NULL);
-    HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+    // 1. 가격
+    size_t priceStart = message.find(L"안녕하세요, ");
+    if (priceStart != std::wstring::npos)
+    {
+        priceStart += 7; // "안녕하세요, " 다음부터
+        size_t priceEnd = message.find(L"(으)로", priceStart);
+        if (priceEnd != std::wstring::npos)
+        {
+            price = message.substr(priceStart, priceEnd - priceStart);
+        }
+    }
 
-    // 비트맵 생성
-    HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC, screenX, screenY);
-    SelectObject(hMemoryDC, hBitmap);
+    // 2. 아이템명
+    size_t itemStart = message.find(L"리그의 ");
+    if (itemStart != std::wstring::npos)
+    {
+        itemStart += 4; // "리그의 " 다음부터
+        size_t itemEnd = message.find(L"(을)를 구매하고 싶습니다", itemStart);
+        if (itemEnd != std::wstring::npos)
+        {
+            item = message.substr(itemStart, itemEnd - itemStart);
+        }
+    }
 
-    // 비트맵에 화면 내용 복사
-    BitBlt(hMemoryDC, 0, 0, screenX, screenY, hScreenDC, 0, 0, SRCCOPY);
+    // 3. 발신자
+    size_t senderStart = message.find(L"@수신 ");
+    if (senderStart != std::wstring::npos)
+    {
+        senderStart += 4; // "@수신 " 다음부터
+        size_t senderEnd = message.find(L":", senderStart);
+        if (senderEnd != std::wstring::npos)
+        {
+            sender = message.substr(senderStart, senderEnd - senderStart);
+        }
+    }
 
-    // 정리
-    DeleteDC(hMemoryDC);
-    ReleaseDC(NULL, hScreenDC);
+    // 로그 메시지 문구
+    wstring LogMessage = L" | " + price + L" | " + item + L" (@" + sender + L")";
 
-    return hBitmap;
+    // 디스코드 메시지 보내기
+    if(SendDiscordMessage(price, item, sender))
+    {
+        LogFunc(hEditLog, LogTimeFunc() + L" 전송됨: " + LogMessage + L"\r\n");
+    }
+    else
+    {
+        LogFunc(hEditLog, LogTimeFunc() + L" 전송실패: " + LogMessage + L"\r\n");
+    }
 }
 
-void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
+bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, const std::wstring& item, const std::wstring& sender)
 {
+    wstring message = L"===============================\n가격　: " + price + L"\n"
+                                                     + L"아이템: " + item + L"\n"
+                                                     + L"구매자: " + sender + L"\n"
+                     + L"===============================";
+
     CURL* curl = curl_easy_init();
-    if (!curl) return;
+    if (!curl) return false;
 
     // text채널 설정에서 웹훅 url
     const std::string webhook_url = ToString(webhookurl);
     const char* url = webhook_url.c_str();
 
-    std::string utf8_message = WStringToUtf8(message);
-    std::string json_data = "{\"content\":\"" + utf8_message + "\"}";
+    string utf8_message = WStringToUtf8(message);
+    string escaped_message = EscapeJsonString(utf8_message);
+    string json_data = "{\"content\":\"" + escaped_message + "\"}";
 
     struct curl_httppost* post = nullptr;
     struct curl_httppost* last = nullptr;
@@ -139,13 +164,28 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
         CURLFORM_COPYCONTENTS, json_data.c_str(),
         CURLFORM_END);
 
-    // 이미지 파일 첨부 (multipart name="file" 필드로 사용됨)
-    curl_formadd(&post, &last,
-        CURLFORM_COPYNAME, "file",
-        CURLFORM_FILE, "screenshot.png",
-        CURLFORM_FILENAME, "screenshot.png",
-        CURLFORM_CONTENTTYPE, "image/png",
-        CURLFORM_END);
+    if (bImageMode)
+    {
+        // 주요 2종 커런시만 
+        if (price.find(L"divine") != std::wstring::npos)
+        {
+            curl_formadd(&post, &last,
+                CURLFORM_COPYNAME, "file",
+                CURLFORM_FILE, "Orb_Images\\divine.png",
+                CURLFORM_FILENAME, "divine.png",
+                CURLFORM_CONTENTTYPE, "image/png",
+                CURLFORM_END);
+        }
+        else if (price.find(L"chaos") != std::wstring::npos)
+        {
+            curl_formadd(&post, &last,
+                CURLFORM_COPYNAME, "file",
+                CURLFORM_FILE, "Orb_Images\\chaos.png",
+                CURLFORM_FILENAME, "chaos.png",
+                CURLFORM_CONTENTTYPE, "image/png",
+                CURLFORM_END);
+        }
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
@@ -155,135 +195,22 @@ void TextDetectorApplication::SendDiscordMessage(const std::wstring& message)
     const char* errMsg = curl_easy_strerror(res);
     if (res != CURLE_OK)
     {
-        //wchar_t buffer[256];
-        //swprintf_s(buffer, 256, L"Discord 메세지 전송 실패\n오류코드: %d", static_cast<int>(res));
-        //MessageBox(nullptr, buffer, L"Discord 메세지 전송 실패", MB_OK);
         wchar_t wideMsg[512];
         swprintf_s(wideMsg, 512, L"Discord 메세지 전송 실패\n오류코드: %d\n설명: %S", res, errMsg);
         MessageBox(nullptr, wideMsg, L"Discord 메세지 전송 실패", MB_OK);
+
+        return false;
     }
 
     curl_easy_cleanup(curl);
-}
 
-void TextDetectorApplication::DoScreenOCR(cv::Mat image)
-{
-    tessAPI->SetImage(image.data, image.cols, image.rows, 3, image.step);
-
-    char* outText = tessAPI->GetUTF8Text();
-
-    int utf8Len = MultiByteToWideChar(CP_UTF8, 0, outText, -1, nullptr, 0);
-    std::wstring wText(utf8Len, 0);
-    MultiByteToWideChar(CP_UTF8, 0, outText, -1, &wText[0], utf8Len);
-
-    if (!bAlreadySent && wText.find(L"구매") != std::wstring::npos)
-    {
-        // 최근 메세지 시간 받아오기
-        std::wstring latestTime;
-        GetDeliveryTime(wText, latestTime);
-
-        if (!latestTime.empty() && latestTime != wLastDetectedTime)
-        {
-            // 최근 메세지 시간 저장
-            wLastDetectedTime = latestTime;
-
-            if (LogFunc && LogTimeFunc)
-            {
-                LogFunc(hEditLog, LogTimeFunc() + L" 감지됨: 구매자 발견!\r\n");
-            }
-
-            // 캡처이미지 저장
-            cv::imwrite("screenshot.png", image);
-            // 디스코드 메세지 전송
-            SendDiscordMessage(L"감지됨: 구매하고 싶습니다!");
-            bAlreadySent = true;
-        }
-    }
-}
-
-void TextDetectorApplication::LogMessage()
-{
-    static DWORD dwLastLogTime = 0;
-    static DWORD dwLastLogClearTime = 0;
-
-    DWORD dwNow = GetTickCount64();
-
-    if (!bFirstLogDone)
-    {
-        if (LogFunc) LogFunc(hEditLog, LogTimeFunc() + L" 실시간 감지중 ...\r\n");
-        bFirstLogDone = true;
-        dwLastLogTime = dwNow;
-        dwLastLogClearTime = dwNow;
-    }
-    else
-    {
-        if (dwNow - dwLastLogTime >= 1200000) // 20분 = 1200000ms
-        {
-            if (LogFunc) LogFunc(hEditLog, LogTimeFunc() + L" 실시간 감지중 ...\r\n");
-            dwLastLogTime = dwNow;
-        }
-
-        if (dwNow - dwLastLogClearTime >= 10800000) // 3시간 뒤 로그 정리
-        {
-            dwLastLogClearTime = dwNow;
-            CleanLogExceptLatestDetections();
-        }
-    }
-}
-
-void TextDetectorApplication::CleanLogExceptLatestDetections()
-{
-    if (!hEditLog) return;
-
-    const int bufferSize = 32768;
-    wchar_t buffer[bufferSize] = { 0 };
-    GetWindowText(hEditLog, buffer, bufferSize);
-
-    std::wstring allText = buffer;
-    std::vector<std::wstring> lines;
-    size_t pos = 0;
-    while ((pos = allText.find(L"\r\n")) != std::wstring::npos)
-    {
-        lines.push_back(allText.substr(0, pos));
-        allText.erase(0, pos + 2);
-    }
-    if (!allText.empty())
-        lines.push_back(allText); // 마지막 줄
-
-    // 마지막 "감지 시작", 마지막 "실시간 감지중"을 찾기
-    std::wstring lastStartLine, lastFoundLine, lastDetectingLine;
-    for (auto it = lines.rbegin(); it != lines.rend(); ++it)
-    {
-        if (lastStartLine.empty() && it->find(L"감지 시작") != std::wstring::npos)
-            lastStartLine = *it;
-
-        if (lastFoundLine.empty() && it->find(L"감지됨") != std::wstring::npos)
-            lastFoundLine = *it;
-
-        if (lastDetectingLine.empty() && it->find(L"실시간 감지중") != std::wstring::npos)
-            lastDetectingLine = *it;
-
-        if (!lastStartLine.empty() && !lastDetectingLine.empty())
-            break;
-    }
-
-    // 새로운 로그 구성
-    std::wstring newLog;
-    if (!lastStartLine.empty())
-        newLog += lastStartLine + L"\r\n";
-    if (!lastFoundLine.empty())
-        newLog += lastFoundLine + L"\r\n";
-    if (!lastDetectingLine.empty())
-        newLog += lastDetectingLine + L"\r\n";
-
-    // 로그 업데이트
-    SetWindowText(hEditLog, newLog.c_str());
+    return true;
 }
 
 const std::wstring TextDetectorApplication::LoadChatPathFromFile()
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-8");
 
     if (!pFile) return L"";
 
@@ -311,7 +238,7 @@ const std::wstring TextDetectorApplication::LoadChatPathFromFile()
 const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-8");
     if (!pFile) return L"";
 
     wchar_t szBuff[1024] = {};
@@ -335,7 +262,7 @@ const std::wstring TextDetectorApplication::LoadWebhookFromFile()
 void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-8");
     if (!pFile) 
     { 
         MessageBox(nullptr, L"URL 조회 실패", L"path&url.txt 파일 생성 실패", MB_OK);
@@ -353,7 +280,7 @@ void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
 void TextDetectorApplication::SaveChatPathFromFile(const std::wstring& path)
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-8");
     if (!pFile)
     {
         MessageBox(nullptr, L"ChatPath 조회 실패", L"path&url.txt 파일 생성 실패", MB_OK);
@@ -397,7 +324,39 @@ void TextDetectorApplication::GetDeliveryTime(const std::wstring& text, std::wst
     }
 }
 
-void TextDetectorApplication::Release()
+void TextDetectorApplication::OpenDirHandle()
 {
-    tessAPI->End();
+    if (chatlog_path == L"")
+    {
+        MessageBox(nullptr, L"오류", L"디렉터리 경로 없음", MB_OK);
+        return;
+    }
+
+    wstring folderPath = filesystem::path(chatlog_path).parent_path();
+    hDir = CreateFile
+    (
+        folderPath.c_str(),
+        FILE_LIST_DIRECTORY,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (hDir == INVALID_HANDLE_VALUE) 
+    {
+        MessageBox(nullptr, L"오류", L"디렉터리 핸들 생성 실패", MB_OK);
+        return ;
+    }
 }
+
+void TextDetectorApplication::CloseDirHandle()
+{
+    //if (hDir != INVALID_HANDLE_VALUE)
+    //{
+    //    CloseHandle(hDir);
+    //    hDir = INVALID_HANDLE_VALUE;
+    //}
+}
+

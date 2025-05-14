@@ -29,6 +29,27 @@ string WStringToUtf8(const std::wstring& wstr)
     return result;
 }
 
+string EscapeJsonString(const std::string& input)
+{
+    std::string output;
+    for (char c : input)
+    {
+        switch (c)
+        {
+        case '\"': output += "\\\""; break;
+        case '\\': output += "\\\\"; break;
+        case '\b': output += "\\b";  break;
+        case '\f': output += "\\f";  break;
+        case '\n': output += "\\n";  break;
+        case '\r': output += "\\r";  break;
+        case '\t': output += "\\t";  break;
+        default:
+            // UTF-8은 그냥 추가 (JSON에서 유효한 UTF-8로 가정)
+            output += c;
+        }
+    }
+    return output;
+}
 
 void SaveWString(const wstring& _str, FILE* _File)
 {

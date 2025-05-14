@@ -13,7 +13,6 @@
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
-//TextDetectorApplication application;
 
 HWND hButtonStart;
 HWND hEditLog;
@@ -23,6 +22,8 @@ HWND hButtonSetChatPath;
 HWND hEditWebhook;
 HWND hWebhookLabel;
 HWND hButtonSetWebhook;
+HWND hCheckBoxImage;
+
 std::wstring g_WebhookUrl;
 std::wstring g_ChatPath;
 
@@ -46,7 +47,7 @@ std::wstring GetCurrentTimestamp()
     localtime_s(&localTime, &now);
 
     wchar_t buffer[100];
-    wcsftime(buffer, sizeof(buffer) / sizeof(wchar_t), L"[%Y-%m-%d %H:%M] ", &localTime);
+    wcsftime(buffer, sizeof(buffer) / sizeof(wchar_t), L"[%Y-%m-%d %H:%M:%S] ", &localTime);
     return std::wstring(buffer);
 }
 
@@ -64,8 +65,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    // TODO: 여기에 코드를 입력합니다.
-
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_CLIENT, szWindowClass, MAX_LOADSTRING);
@@ -113,7 +112,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     }
 
-    TextDetectorApplication::Release();
     //application.Release();
 
     return (int) msg.wParam;
@@ -167,7 +165,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int startY = screenY / 4;
 
    HWND hWnd = CreateWindowW(szWindowClass, ORIGINAL_TITLE, WS_OVERLAPPEDWINDOW,
-       startX + 50, startY, 550, 475, nullptr, nullptr, hInstance, nullptr);
+       startX + 50, startY, 700, 475, nullptr, nullptr, hInstance, nullptr);
 
    // 기능함수 초기화
    //application.Initialize(hWnd, hEditLog, AppendLog, GetCurrentTimestamp);
@@ -190,6 +188,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CREATE:
+
         // 시작 버튼
         hButtonStart = CreateWindow
         (
@@ -277,7 +276,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             SetWindowText(hEditChatPath, g_ChatPath.c_str());
         }
+
+        // 커런시 이미지 강조
+        hCheckBoxImage = CreateWindowW
+        (
+            L"BUTTON", L"with Currency Image",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
+            20, 400, 155, 25,
+            hWnd, (HMENU)IDC_IMAGE_CHECKBOX, hInst, nullptr
+        );
         break;
+
 
     case WM_SIZE:
     {
@@ -311,9 +320,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // 로그 에디트 박스
         int logEditTop = startButtonTop + 30 + sectionGap;
-        int logEditHeight = height - logEditTop - margin;
+        int logEditHeight = height - logEditTop - margin * 2;
         if (logEditHeight < 0) logEditHeight = 0;
         MoveWindow(hEditLog, margin, logEditTop, width - 2 * margin, logEditHeight, TRUE);
+
+        // 체크 박스
+        MoveWindow(hCheckBoxImage, width - margin - 155, logEditTop + logEditHeight + 5 , 155, 25, TRUE);
 
         break;
     }
@@ -335,11 +347,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wmId)
             {
             case IDC_START_BUTTON:
-                bIsDetecting = true;
-                AppendLog(hEditLog, GetCurrentTimestamp() + L" 감지 시작\r\n");
 
+                if (g_ChatPath.empty())
+                {
+                    MessageBox(nullptr,  L"채팅 파일 경로를 설정해주세요.", L"파일 경로 조회 실패", MB_OK);
+                    break;
+                }
+
+                bIsDetecting = true;
+                TextDetectorApplication::OpenDirHandle();
+                AppendLog(hEditLog, GetCurrentTimestamp() + L" 모니터링 시작!\r\n");
                 // 윈도우 제목 변경 (작업표시줄에 보이는 텍스트)
-                SetWindowText(hWnd, L"메세지 감지중");
+                SetWindowText(hWnd, L"메시지 모니터링중");
 
                 // 시작 버튼 비활성화
                 EnableWindow(hButtonStart, FALSE);
@@ -355,9 +374,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case IDC_STOP_BUTTON:
                 bIsDetecting = false;
-                //application.bFirstLogDone = false;
-                TextDetectorApplication::bFirstLogDone = false;
-                AppendLog(hEditLog, GetCurrentTimestamp() + L" ========== 감지 중단 ==========\r\n");
+                TextDetectorApplication::CloseDirHandle();
+                AppendLog(hEditLog, GetCurrentTimestamp() + L" ========== 모니터링 중단 ==========\r\n");
 
                 // 윈도우 제목 원래대로 복원
                 SetWindowText(hWnd, ORIGINAL_TITLE);
@@ -400,7 +418,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            break;
+            case IDC_IMAGE_CHECKBOX:
+            {
+                HWND hCheckBox = GetDlgItem(hWnd, IDC_IMAGE_CHECKBOX);
+                BOOL bChecked = SendMessage(hCheckBox, BM_GETCHECK, 0, 0) == BST_CHECKED;
+
+                if (bChecked)
+                {
+                    TextDetectorApplication::bImageMode = true;
+                }
+                else
+                {
+                    TextDetectorApplication::bImageMode = false;
+                }
+                break;
+            }
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;

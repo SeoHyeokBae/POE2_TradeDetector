@@ -14,6 +14,7 @@
 #define IDD_WEBHOOK_DIALOG              301
 #define IDC_START_BUTTON                1001
 #define IDC_STOP_BUTTON                 1002
+#define IDC_IMAGE_CHECKBOX              1003
 #define IDC_LOG_EDIT                    2001
 #define IDC_WEBHOOK_EDIT                2002
 #define IDC_WEBHOOK_SET_BUTTON          2003
