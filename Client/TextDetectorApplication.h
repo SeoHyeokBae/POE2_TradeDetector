@@ -29,6 +29,10 @@ public:
 	// Webhook 링크 파일 체크
 	static const std::wstring LoadWebhookFromFile();
 	static void SaveWebhookFromFile(const std::wstring& url);
+
+    // Webhook 링크 파일 체크
+    static const std::wstring LoadChatPathFromFile();
+	static void SaveChatPathFromFile(const std::wstring& path);
     // 최근 메세지 도착시간 찾기
     static void GetDeliveryTime(const std::wstring& text, std::wstring& getTime);
 
@@ -47,5 +51,6 @@ private:
 	static LogTimeFuncPtr LogTimeFunc;
 
     static wstring webhookurl;
+    static wstring chatlog_path;
 };
 

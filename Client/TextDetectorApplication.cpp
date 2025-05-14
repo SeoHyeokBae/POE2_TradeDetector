@@ -16,7 +16,7 @@ bool TextDetectorApplication::bClearLogDone = false;
 bool TextDetectorApplication::bAlreadySent = false;
 
 std::wstring TextDetectorApplication::webhookurl= L"";
-
+std::wstring TextDetectorApplication::chatlog_path = L"";
 
 std::atomic<bool> g_bIsTaskRunning = false;
 std::future<void> g_futureTask;
@@ -280,47 +280,90 @@ void TextDetectorApplication::CleanLogExceptLatestDetections()
     SetWindowText(hEditLog, newLog.c_str());
 }
 
-const std::wstring TextDetectorApplication::LoadWebhookFromFile()
+const std::wstring TextDetectorApplication::LoadChatPathFromFile()
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"webhookurl.txt", L"rt, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-16LE");
 
-    if (!pFile) {return L"";}
+    if (!pFile) return L"";
 
-    wstring URL;
+    std::wstring chatPath;
     wchar_t szBuff[1024] = {};
     if (fgetws(szBuff, sizeof(szBuff) / sizeof(wchar_t), pFile))
     {
         size_t len = wcslen(szBuff);
-        if (len > 0 && szBuff[len - 1] == L'\n') 
+        if (len > 0 && szBuff[len - 1] == L'\n')
         {
             szBuff[len - 1] = L'\0';
         }
-        URL = szBuff;
+        chatPath = szBuff;
     }
-    else 
-    { 
-        URL = L""; 
+    else
+    {
+        chatPath = L"";
     }
 
-    webhookurl = URL;
+    chatlog_path = chatPath;
     fclose(pFile);
+    return chatPath;
+}
 
-    return URL;
+const std::wstring TextDetectorApplication::LoadWebhookFromFile()
+{
+    FILE* pFile = nullptr;
+    _wfopen_s(&pFile, L"path&url.txt", L"rt, ccs=UTF-16LE");
+    if (!pFile) return L"";
+
+    wchar_t szBuff[1024] = {};
+    std::wstring webhook;
+
+    // 첫 줄은 ChatPath, 두 번째 줄을 읽음
+    fgetws(szBuff, sizeof(szBuff) / sizeof(wchar_t), pFile); // Skip line 1
+
+    if (fgetws(szBuff, sizeof(szBuff) / sizeof(wchar_t), pFile))
+    {
+        size_t len = wcslen(szBuff);
+        if (len > 0 && szBuff[len - 1] == L'\n') szBuff[len - 1] = L'\0';
+        webhook = szBuff;
+    }
+
+    webhookurl = webhook;
+    fclose(pFile);
+    return webhook;
 }
 
 void TextDetectorApplication::SaveWebhookFromFile(const std::wstring& url)
 {
     FILE* pFile = nullptr;
-    _wfopen_s(&pFile, L"webhookurl.txt", L"w, ccs=UTF-16LE");
+    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-16LE");
     if (!pFile) 
     { 
-        MessageBox(nullptr, L"URL 조회 실패", L"webhookurl.txt 파일 생성 실패", MB_OK);
+        MessageBox(nullptr, L"URL 조회 실패", L"path&url.txt 파일 생성 실패", MB_OK);
         fclose(pFile);
         return;
     }
+
     webhookurl = url;
+    wstring chatpath = chatlog_path + L"\n";
+    fputws(chatpath.c_str(), pFile);
     fputws(url.c_str(), pFile);
+    fclose(pFile);
+}
+
+void TextDetectorApplication::SaveChatPathFromFile(const std::wstring& path)
+{
+    FILE* pFile = nullptr;
+    _wfopen_s(&pFile, L"path&url.txt", L"w, ccs=UTF-16LE");
+    if (!pFile)
+    {
+        MessageBox(nullptr, L"ChatPath 조회 실패", L"path&url.txt 파일 생성 실패", MB_OK);
+        fclose(pFile);
+        return;
+    }
+    chatlog_path = path;
+    wstring chatpath = chatlog_path + L"\n";
+    fputws(chatpath.c_str(), pFile);
+    fputws(webhookurl.c_str(), pFile);
     fclose(pFile);
 }
 

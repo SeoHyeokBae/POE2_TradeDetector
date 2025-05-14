@@ -24,6 +24,7 @@ HWND hEditWebhook;
 HWND hWebhookLabel;
 HWND hButtonSetWebhook;
 std::wstring g_WebhookUrl;
+std::wstring g_ChatPath;
 
 bool bIsDetecting = false;
 const wchar_t* ORIGINAL_TITLE = L"POE2_TradeDetector";
@@ -251,7 +252,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             400, 60, 60, 27, hWnd, (HMENU)IDC_WEBHOOK_SET_BUTTON, hInst, nullptr
         );
         
-        // 초기 webhook 파일 로드
+        // 초기 webhook 로드
         g_WebhookUrl = TextDetectorApplication::LoadWebhookFromFile();
         if (!g_WebhookUrl.empty())
         {
@@ -268,6 +269,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             TextDetectorApplication::SaveWebhookFromFile(L"Discord Webhook 주소를 등록 해주세요");
             SetWindowText(hEditWebhook, L"Discord Webhook 주소를 등록 해주세요");
             SetWindowText(hButtonSetWebhook, L"등록");
+        }
+
+        // 초기 ChatPath 로드
+        g_ChatPath = TextDetectorApplication::LoadChatPathFromFile();
+        if (!g_ChatPath.empty())
+        {
+            SetWindowText(hEditChatPath, g_ChatPath.c_str());
         }
         break;
 
@@ -387,9 +395,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     // 선택된 경로를 Edit 박스에 표시
                     SetWindowText(hEditChatPath, szFile);
 
-                    // 메모장에 기록해놔야함
-                    // webhook url 메모장 통합
-                    // ChatFilePath = szFile;
+                    TextDetectorApplication::SaveChatPathFromFile(szFile);
                 }
                 break;
             }
