@@ -358,7 +358,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 TextDetectorApplication::OpenDirHandle();
                 AppendLog(hEditLog, GetCurrentTimestamp() + L" 모니터링 시작!\r\n");
                 // 윈도우 제목 변경 (작업표시줄에 보이는 텍스트)
-                SetWindowText(hWnd, L"메시지 모니터링중");
+                SetWindowText(hWnd, L"메시지 감지중");
 
                 // 시작 버튼 비활성화
                 EnableWindow(hButtonStart, FALSE);
@@ -406,12 +406,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ofn.lpstrFile = szFile;
                 ofn.nMaxFile = MAX_PATH;
                 ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-                ofn.lpstrTitle = L"채팅 로그 파일 선택";
+                ofn.lpstrTitle = L"채팅 로그 텍스트 파일 선택";
+
+                // 기존 작업 디렉토리 저장
+                wchar_t currentDir[MAX_PATH];
+                GetCurrentDirectory(MAX_PATH, currentDir);
 
                 if (GetOpenFileName(&ofn))
                 {
                     // 선택된 경로를 Edit 박스에 표시
                     SetWindowText(hEditChatPath, szFile);
+
+                    // 작업 디렉토리 복원
+                    SetCurrentDirectory(currentDir);
 
                     TextDetectorApplication::SaveChatPathFromFile(szFile);
                 }

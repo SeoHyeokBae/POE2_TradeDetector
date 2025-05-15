@@ -32,9 +32,9 @@ void TextDetectorApplication::Run()
             {
                 static char buffer[1024];
                 static DWORD bytesReturned;
-
+                DWORD Filter = FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_ATTRIBUTES;
                 if (ReadDirectoryChangesW(hDir, buffer, sizeof(buffer),
-                    FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE,
+                    FALSE, Filter,
                     &bytesReturned, NULL, NULL))
                 {
                     FILE_NOTIFY_INFORMATION* pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer);
@@ -66,8 +66,8 @@ void TextDetectorApplication::Run()
                             }
 
                             // 구매 메시지일 경우
-                            if (lastChat.find(L"구매하고 싶습니다") != std::wstring::npos 
-                                         && lastChat.find(L"@수신") != std::wstring::npos)
+                            if (lastChat.find(L"구매하고 싶습니다") != std::wstring::npos
+                                && lastChat.find(L"@수신") != std::wstring::npos)
                             {
                                 ParseTradeMessage(lastChat);
                             }
@@ -139,10 +139,10 @@ void TextDetectorApplication::ParseTradeMessage(const std::wstring& message)
 
 bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, const std::wstring& item, const std::wstring& sender)
 {
-    wstring message = L"===============================\n가격　: " + price + L"\n"
+    wstring message = L"==========================\n가격　: " + price + L"\n"
                                                      + L"아이템: " + item + L"\n"
                                                      + L"구매자: " + sender + L"\n"
-                     + L"===============================";
+                     + L"==========================";
 
     CURL* curl = curl_easy_init();
     if (!curl) return false;

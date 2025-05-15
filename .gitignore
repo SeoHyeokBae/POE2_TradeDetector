@@ -438,3 +438,5 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/c++,visualstudio
 Client/screenshot.png
 Client/webhookurl.txt
+Client/test.txt
+Client/path&url.txt
