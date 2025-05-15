@@ -1,2 +1,0 @@
-﻿C:\Vero\POE2_TradeMessage\Client\test.txt
-https://discord.com/api/webhooks/1367564424298233999/F-I5tGFqM8suQ9m64yNicJao8PGDK_Q2STvR79QRK00IL78yY3S-Lbaa9RF8nDA_CWeF
