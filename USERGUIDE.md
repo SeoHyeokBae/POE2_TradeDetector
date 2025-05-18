@@ -24,7 +24,7 @@
 &nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/d4a2847c-591f-4c32-ac93-6c26ff75317f width="445" height="450">
 
 ### 2.  실행
-- <code>***POE2_TradeMsg.exe***</code>파일 실행합니다.  
+- <code>***POE2_TradeMsg.exe***</code>파일을 실행합니다.  
 &nbsp;![실행파일](https://github.com/user-attachments/assets/78d59c99-b066-4d66-869b-6421438114ab)  
 &nbsp;<img src=https://github.com/user-attachments/assets/90fa767a-6848-4fa8-b1fc-bacd6498babf width="365" height="350">
 
