@@ -145,7 +145,7 @@ bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, cons
 
     if (bImageMode)
     {
-        // 주요 2종 커런시만 
+        // 주요 3종 커런시 
         if (price.find(L"divine") != std::wstring::npos)
         {
             curl_formadd(&post, &last,
@@ -161,6 +161,15 @@ bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, cons
                 CURLFORM_COPYNAME, "file",
                 CURLFORM_FILE, "Orb_Images\\chaos.png",
                 CURLFORM_FILENAME, "chaos.png",
+                CURLFORM_CONTENTTYPE, "image/png",
+                CURLFORM_END);
+        }
+        else if (price.find(L"exalted") != std::wstring::npos)
+        {
+            curl_formadd(&post, &last,
+                CURLFORM_COPYNAME, "file",
+                CURLFORM_FILE, "Orb_Images\\exalted.png",
+                CURLFORM_FILENAME, "exalted.png",
                 CURLFORM_CONTENTTYPE, "image/png",
                 CURLFORM_END);
         }
