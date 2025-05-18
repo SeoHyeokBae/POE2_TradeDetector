@@ -1,4 +1,4 @@
-# POE2 TradeDetector v2.0
+# POE2 TradeDetector_v2.0
 실시간 채팅 로그를 모니터링하여 구매 메시지를 감지하고, 해당 내용을 **디스코드로 자동 전송하는 프로그램입니다.**  
 ###### 잠시 자리를 비운 사이에 꼭 거래 메시지가 오는 경우가 많아 중요한 거래 요청을 놓치지 않기 위해 제작됨
 <img src="https://github.com/user-attachments/assets/a40076cc-5e0f-4d83-9e76-ebf860182e3e" width="27%">
