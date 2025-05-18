@@ -6,7 +6,7 @@ $\bf{\small{\color{#808080}(해당\ 버전은\ v1.0으로\ 화면을\ 캡쳐해\
 
 ### [다운로드](https://drive.google.com/file/d/1ZvTy3_kq-hP-dIx7PVxeHDAO3n31sX47/view?usp=drive_link ".exe 파일다운")
 ### [사용방법](USERGUIDE.md "사용방법")  
-###### ~~2025.05.13: POE2에서 채팅로그가 게임 경로에 저장된다는 것을 알았음... 화면캡처->텍스트 분석으로 업데이트~~
+
 ## 시연 영상
 https://github.com/user-attachments/assets/a443489d-1e08-4f84-89dc-0c3cf547d10a
 
