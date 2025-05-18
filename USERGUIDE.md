@@ -1,5 +1,5 @@
 # v2.0 사용자 가이드
-프로그램 제작 당시 사용된 게임 버전은 POE2: 사냥의 서막 0.2.0g 입니다.
+프로그램 제작 당시 사용된 게임 버전은 <code>**POE2: 사냥의 서막 0.2.0g**</code> 입니다.
 ###### 이 페이지는 v2.0 버전을 기준으로 작성된 가이드입니다. v1.0 버전에 대한 가이드는 아래 링크를 참조
 #### [v1.0 사용 가이드](https://github.com/SeoHyeokBae/POE2_TradeDetector/blob/POE2_TradeDetector_v1.0/USERGUIDE.md)
 
