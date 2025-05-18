@@ -8,14 +8,6 @@
 - [사용방법](#사용방법)
 - [백그라운드 기능](#백그라운드-기능)
 - [프로그램 한계](#프로그램-한계)
-## 사용환경
-###### 더블 모니터에서 메인 모니터 화면 캡처
-#### <code>**채팅창 옵션**</code> $\bf{\small{\color{#808080}(POE2\ 0.2.0g버전)}}$  
-- **"채팅 입력 시간 보기"** ***필수*** 체크  
-<img src=https://github.com/user-attachments/assets/c50548b9-4820-49e7-bedc-4daeaedf7b96 width="521" height="350">
-
-#### <code>**성소 은신처**</code> $\bf{\small{\color{#808080}(어두운\ 배경:\ 문자의\ 정확도를\ 높여줌)}}$
-![성소은신처](https://github.com/user-attachments/assets/82649e74-75ed-4b65-895b-87296299b7ef)
 
 ## 사용방법
 ### 1.  디스코드 웹후크
@@ -28,7 +20,7 @@
 &nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/d4a2847c-591f-4c32-ac93-6c26ff75317f width="445" height="450">
 
 ### 2.  실행
-- <code>***POE2_TradeMsg.exe***</code>파일 실행합니다.  
+- <code>***POE2_TradeMsg.exe***</code>파일을 실행합니다.  
 &nbsp;![실행파일](https://github.com/user-attachments/assets/78d59c99-b066-4d66-869b-6421438114ab)  
 &nbsp;<img src=https://github.com/user-attachments/assets/90fa767a-6848-4fa8-b1fc-bacd6498babf width="365" height="350">
 
