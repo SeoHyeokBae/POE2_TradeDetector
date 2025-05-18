@@ -1,11 +1,14 @@
 # POE2 TradeDetector v2.0
 실시간 채팅 로그를 모니터링하여 구매 메시지를 감지하고, 해당 내용을 **디스코드로 자동 전송하는 프로그램입니다.**  
-
 ###### 잠시 자리를 비운 사이에 꼭 거래 메시지가 오는 경우가 많아 중요한 거래 요청을 놓치지 않기 위해 제작됨
-###### 휴대폰의 디스코드 앱에서 메시지 알림을 받거나 수시로 확인 가능
+<img src="https://github.com/user-attachments/assets/a40076cc-5e0f-4d83-9e76-ebf860182e3e" width="27%">
+<img src="https://github.com/user-attachments/assets/ddbde01f-febd-4e8d-beb1-8b5a10e4f5ec" width="63%">  
+
+$\bf{\small{\color{#808080}(휴대폰의\ 디스코드\ 앱에서\ 메시지\ 알림을\ 받거나\ 수시로\ 확인\ 가능)}}$  
 
 ### [다운로드](https://drive.google.com/file/d/1r09fH6bfeFH4dOkgVIfhDzu4hL3TuC5o/view?usp=drive_link ".exe 파일다운")
 ### [사용방법](USERGUIDE.md "사용방법")  
+
 ###### ~~OCR 기반으로 특정 키워드("구매")를 감지하고, 디스코드로 메시지를 자동 전송하는 프로그램 입니다.~~ $\bf{\small{\color{#808080}(v1.0)}}$   
 ###### ~~2025.05.13: POE2에서 채팅로그가 게임 경로에 저장된다는 것을 알았음... 화면캡처->텍스트 분석~~ $\bf{\small{\color{#808080}(2025.05.19.v2.0\ Release)}}$  
 
