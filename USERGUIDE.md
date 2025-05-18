@@ -56,5 +56,5 @@
 ### Tip.
 - 짧은 시간에 많은 양의 메시지는 문제가 될 수 있습니다.
 - 프로그램 목적에 맞게 컴퓨터에서 자리를 비울때만 사용해주세요.
-- ***with Currency Image*** 모드는 단순히 미리보기 알림 가독성용 입니다.   
+- <code>***with Currency Image***</code> 모드는 단순히 미리보기 알림 가독성용 입니다.   
 ![withcurrency](https://github.com/user-attachments/assets/929ccae7-d1cb-44cd-ae5d-2937b39dfe62)
