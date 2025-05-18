@@ -120,7 +120,7 @@ bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, cons
 {
     wstring message = L"==========================\n가격　: " + price + L"\n"
                                                      + L"아이템: " + item + L"\n"
-                                                     + L"구매자: " + sender + L"\n"
+                                                     + L"구매자: @" + sender + L"\n"
                      + L"==========================";
 
     CURL* curl = curl_easy_init();
