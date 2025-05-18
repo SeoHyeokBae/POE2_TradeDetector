@@ -18,14 +18,15 @@ https://github.com/user-attachments/assets/a443489d-1e08-4f84-89dc-0c3cf547d10a
 <br/><br/>
 ## 개발환경
 ###### 윈도우11, VS2022 윈도우 어플리케이션에서 win Api와 c/c++으로 제작되었습니다.  
-Tesseract OCR
-- [tesseract-ocr-w64-5.5](https://github.com/UB-Mannheim/tesseract/wiki "tesseract-ocr 다운로드")
+<img src="https://curl.se/logo/curl-logo.svg" alt="curl" width="10%">
 
-OpenCV4
-- [opencv-4.11.0](https://opencv.org/releases/ "OpenCV 다운로드")
+- [libcurl 8.9.1](https://github.com/curl/curl "curl github")
+## 출처
+오브 아이콘
+- [POE2 Wiki](https://www.poe2wiki.net/wiki/Category:Currency_item_icons)
 
 ## 주의사항
 - 본 프로그램은 개인적인 편의를 위해 제작되었으며, **해당 게임사로부터 공식적인 허가를 받지 않았습니다.**
 - 본 프로그램을 사용하여 발생할 수 있는 **계정 정지, 제재, 서비스 이용 제한 등 모든 책임은 사용자 본인에게 있습니다.**
 - 본 프로그램은 **게임 내 자동화된 입력(매크로) 기능은 포함하고 있지 않습니다.**
-$\bf{\small{\color{#808080}(OCR\ 감지\ 및\ 디스코드\ 메시지\ 전송만\ 수행)}}$
+$\bf{\small{\color{#808080}(디스코드\ 메시지\ 전송만\ 수행)}}$
