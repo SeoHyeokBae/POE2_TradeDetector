@@ -2,6 +2,9 @@
 #include "TextDetectorApplication.h"
 #include "func.h"
 #include <curl/curl.h>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 HWND TextDetectorApplication::hWnd = NULL;
 HWND TextDetectorApplication::hEditLog = NULL;
@@ -10,7 +13,8 @@ LogTimeFuncPtr TextDetectorApplication::LogTimeFunc = nullptr;
 
 std::wstring TextDetectorApplication::webhookurl= L"";
 std::wstring TextDetectorApplication::chatlog_path = L"";
-HANDLE TextDetectorApplication::hDir;
+std::wstring TextDetectorApplication::LastLine = L"";
+
 bool TextDetectorApplication::bImageMode = false;
 
 std::atomic<bool> g_bIsTaskRunning = false;
@@ -26,61 +30,36 @@ void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, L
 
 void TextDetectorApplication::Run()
 {
-    if (!g_bIsTaskRunning.exchange(true))
-    {
-        g_futureTask = std::async(std::launch::async, [&]()
+    static FILETIME lastWriteTime = { 0 };
+    static ULONGLONG lastCheckTick = 0;
+
+    ULONGLONG currentTick = GetTickCount64();
+    if (currentTick - lastCheckTick < 100) // 100ms 간격 폴링
+        return;
+    lastCheckTick = currentTick;
+
+    if (g_bIsTaskRunning.exchange(true))
+        return; // 이미 작업 중이면 바로 종료
+
+    g_futureTask = std::async(std::launch::async, [&]()
+        {
+            // RAII 스타일로 무조건 끝나면 플래그 해제
+            struct AutoFlagClear
             {
-                static char buffer[1024];
-                static DWORD bytesReturned;
-                DWORD Filter = FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_ATTRIBUTES;
-                if (ReadDirectoryChangesW(hDir, buffer, sizeof(buffer),
-                    FALSE, Filter,
-                    &bytesReturned, NULL, NULL))
+                std::atomic<bool>& flag;
+                AutoFlagClear(std::atomic<bool>& f) : flag(f) {}
+                ~AutoFlagClear() { flag.store(false); }
+            } clearTaskFlag(g_bIsTaskRunning);
+
+            if (IsChatLogUpdated())
+            {
+                if (LastLine.find(L"구매하고 싶습니다") != std::wstring::npos
+                    && LastLine.find(L"@수신") != std::wstring::npos)
                 {
-                    FILE_NOTIFY_INFORMATION* pNotify = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer);
-                    // 변경된 파일명 추출
-                    std::wstring changedFile(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
-
-                    // 감시 대상 파일명
-                    std::wstring targetFile = filesystem::path(chatlog_path).filename().wstring();
-
-                    if (changedFile == targetFile)
-                    {
-                        FILE* pFile = nullptr;
-                        _wfopen_s(&pFile, chatlog_path.c_str(), L"rt, ccs=UTF-8");
-
-                        if (pFile)
-                        {
-                            wchar_t line[2048] = {};
-                            std::wstring lastChat;
-
-                            while (fgetws(line, sizeof(line) / sizeof(wchar_t), pFile))
-                            {
-                                // 개행 문자 제거
-                                size_t len = wcslen(line);
-                                if (len > 0 && line[len - 1] == L'\n')
-                                    line[len - 1] = L'\0';
-
-                                if (wcslen(line) > 0)
-                                    lastChat = line;
-                            }
-
-                            // 구매 메시지일 경우
-                            if (lastChat.find(L"구매하고 싶습니다") != std::wstring::npos
-                                && lastChat.find(L"@수신") != std::wstring::npos)
-                            {
-                                ParseTradeMessage(lastChat);
-                            }
-
-
-                            fclose(pFile);
-                        }
-                    }
+                    ParseTradeMessage(LastLine);
                 }
-
-                g_bIsTaskRunning.store(false);
-            });
-    }
+            }
+        });
 }
 
 void TextDetectorApplication::ParseTradeMessage(const std::wstring& message)
@@ -294,69 +273,100 @@ void TextDetectorApplication::SaveChatPathFromFile(const std::wstring& path)
     fclose(pFile);
 }
 
-void TextDetectorApplication::GetDeliveryTime(const std::wstring& text, std::wstring& getTime)
-{
-    if (text.empty())
-    {
-        MessageBox(nullptr, L"TEXT 추출 실패", L"TEXT 내용 없음", MB_OK);
-        return ;
-    }
-
-    // 정규식을 이용해 [시:분] 형식의 문자열 찾기
-    std::wregex timeRegex(LR"(\[(\d{1,2}):(\d{2})\])");
-    std::wsregex_iterator iter(text.begin(), text.end(), timeRegex);
-    std::wsregex_iterator end;
-
-    int maxHour = -1, maxMinute = -1;
-
-    for (; iter != end; ++iter)
-    {
-        int hour = std::stoi((*iter)[1]);
-        int minute = std::stoi((*iter)[2]);
-
-        // 시간 비교
-        if (hour > maxHour || (hour == maxHour && minute > maxMinute))
-        {
-            maxHour = hour;
-            maxMinute = minute;
-            getTime = iter->str(); // [시:분] 전체 문자열
-        }
-    }
-}
-
-void TextDetectorApplication::OpenDirHandle()
+bool TextDetectorApplication::IsChatLogUpdated()
 {
     if (chatlog_path == L"")
     {
         MessageBox(nullptr, L"오류", L"디렉터리 경로 없음", MB_OK);
-        return;
+        return false;
     }
 
-    wstring folderPath = filesystem::path(chatlog_path).parent_path();
-    hDir = CreateFile
-    (
-        folderPath.c_str(),
-        FILE_LIST_DIRECTORY,
+    HANDLE hFile = CreateFileW(chatlog_path.c_str(),
+        GENERIC_READ,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
         NULL,
         OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
-        NULL
-    );
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
 
-    if (hDir == INVALID_HANDLE_VALUE) 
+    if (hFile == INVALID_HANDLE_VALUE)
+        return false;
+
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(hFile, &fileSize) || fileSize.QuadPart == 0)
     {
-        MessageBox(nullptr, L"오류", L"디렉터리 핸들 생성 실패", MB_OK);
-        return ;
+        CloseHandle(hFile);
+        return false;
     }
+
+    const DWORD readSize = (DWORD)min(fileSize.QuadPart, 8192);
+    LARGE_INTEGER readOffset;
+    readOffset.QuadPart = fileSize.QuadPart - readSize;
+    SetFilePointerEx(hFile, readOffset, NULL, FILE_BEGIN);
+
+    std::vector<char> buffer(readSize + 1, 0);
+    DWORD bytesRead = 0;
+    BOOL readResult = ReadFile(hFile, buffer.data(), readSize, &bytesRead, NULL);
+    CloseHandle(hFile);
+
+    if (!readResult || bytesRead == 0)
+        return false;
+
+    // 2. UTF-8 -> UTF-16 변환할 길이 계산
+    int wideCharCount = MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        buffer.data(),
+        bytesRead,
+        nullptr,
+        0);
+
+    if (wideCharCount == 0)
+        return false;
+
+    // 3. wstring 생성용 버퍼 할당 후 변환
+    std::wstring content(wideCharCount, 0);
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        buffer.data(),
+        bytesRead,
+        &content[0],
+        wideCharCount);
+
+
+    std::wstringstream ss(content);
+    std::wstring line, streamlastLine;
+
+    while (std::getline(ss, line))
+    {
+        if (!line.empty())
+            streamlastLine = line;
+    }
+
+    if (streamlastLine.empty())
+    {
+        return false;
+    }
+
+    // 첫 시작 버튼 예외
+    if (LastLine.empty() && !streamlastLine.empty())
+    {
+        LastLine = streamlastLine;
+        return false;
+    }
+
+    // 변화o
+    if (LastLine != streamlastLine)
+    {
+        LastLine = streamlastLine;
+        return true;
+    }
+
+    return false;
 }
 
-void TextDetectorApplication::CloseDirHandle()
+void TextDetectorApplication::StopRun()
 {
-    //if (hDir != INVALID_HANDLE_VALUE)
-    //{
-    //    CloseHandle(hDir);
-    //    hDir = INVALID_HANDLE_VALUE;
-    //}
+    LastLine = L"";
 }
-

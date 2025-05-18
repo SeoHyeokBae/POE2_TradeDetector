@@ -355,7 +355,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
 
                 bIsDetecting = true;
-                TextDetectorApplication::OpenDirHandle();
+                TextDetectorApplication::IsChatLogUpdated();
                 AppendLog(hEditLog, GetCurrentTimestamp() + L" 모니터링 시작!\r\n");
                 // 윈도우 제목 변경 (작업표시줄에 보이는 텍스트)
                 SetWindowText(hWnd, L"메시지 감지중");
@@ -374,7 +374,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case IDC_STOP_BUTTON:
                 bIsDetecting = false;
-                TextDetectorApplication::CloseDirHandle();
+                TextDetectorApplication::StopRun();
                 AppendLog(hEditLog, GetCurrentTimestamp() + L" ========== 모니터링 중단 ==========\r\n");
 
                 // 윈도우 제목 원래대로 복원
