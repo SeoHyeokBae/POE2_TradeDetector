@@ -347,7 +347,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wmId)
             {
             case IDC_START_BUTTON:
-
+                g_ChatPath = TextDetectorApplication::LoadChatPathFromFile();
                 if (g_ChatPath.empty())
                 {
                     MessageBox(nullptr,  L"채팅 파일 경로를 설정해주세요.", L"파일 경로 조회 실패", MB_OK);
