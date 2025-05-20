@@ -176,10 +176,11 @@ bool TextDetectorApplication::SendDiscordMessage(const std::wstring& price, cons
     const char* errMsg = curl_easy_strerror(res);
     if (res != CURLE_OK)
     {
-        wchar_t wideMsg[512];
-        swprintf_s(wideMsg, 512, L"Discord 메세지 전송 실패\n오류코드: %d\n설명: %S", res, errMsg);
-        MessageBox(nullptr, wideMsg, L"Discord 메세지 전송 실패", MB_OK);
-
+        //ok 누를때까지 다음 메시지 전송안됨
+        //wchar_t wideMsg[512];
+        //swprintf_s(wideMsg, 512, L"Discord 메세지 전송 실패\n오류코드: %d\n설명: %S", res, errMsg);
+        //MessageBox(nullptr, wideMsg, L"Discord 메세지 전송 실패", MB_OK);
+        curl_easy_cleanup(curl);
         return false;
     }
 
