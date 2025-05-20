@@ -18,26 +18,31 @@
 &nbsp;&nbsp;![연동](https://github.com/user-attachments/assets/b3bcbddb-bd1e-49a9-bc75-dfd81ef9bfd0)  
 &nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/d4a2847c-591f-4c32-ac93-6c26ff75317f width="445" height="450">
 
-### 2.  실행
+### 2.  경로 및 URL 설정
 - <code>***POE2_TradeMsg.exe***</code>파일을 실행합니다.  
 &nbsp;![실행파일](https://github.com/user-attachments/assets/78d59c99-b066-4d66-869b-6421438114ab)  
-&nbsp;<img src=https://github.com/user-attachments/assets/90fa767a-6848-4fa8-b1fc-bacd6498babf width="365" height="350">
+&nbsp;<img src=https://github.com/user-attachments/assets/29c7c17d-5d8a-4612-8705-17613e0426cc width="65%">
 
-- <code>**등록**</code> 또는 <code>**변경**</code> 에서 디스코드 <code>**웹후크**</code>주소를 입력합니다.  
-![등록](https://github.com/user-attachments/assets/edd279e7-2ec0-4c99-9094-99f54427b65a)  
+&nbsp;&nbsp;&nbsp;&nbsp;2-1. <code>**찾아보기**</code> 에서 채팅로그 파일인 <code>**KakaoClient.txt**</code>경로를 선택합니다.  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\bf{\small{\color{#808080}(설치할\ 때\ 따로\ 변경이\ 없었다면)}}$ 드라이브:\Daum Games\Path of Exile2\logs\KakaoClient.txt  
+   
+&nbsp;&nbsp;&nbsp;&nbsp;2-2. <code>**등록**</code> 또는 <code>**변경**</code> 에서 디스코드 <code>**웹후크**</code>주소를 입력합니다.  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![등록](https://github.com/user-attachments/assets/edd279e7-2ec0-4c99-9094-99f54427b65a)  
 - <code>**시작**</code>버튼을 눌러 감지를 시작합니다.  
-![실행](https://github.com/user-attachments/assets/f6fa7387-1165-4d84-abe0-2d42fdc7e53f)
+&nbsp;<img src=https://github.com/user-attachments/assets/643a9fa8-cb23-41e0-be9f-a24c3af98295 width="65%">
 
 ### 3.  테스트
-- <code>**인게임 테스트**</code>$\bf{\small{\color{#808080}(게임에서\ "구매"\ 채팅\ 입력)}}$  
-&nbsp;<img src=https://github.com/user-attachments/assets/f9254bb3-5be5-4837-a047-c66ff690bce0 width="450" height="450">
+- 테스트용  <code>**test.txt**</code> 텍스트 파일을 생성
+- 아래 텍스트 입력후 저장 $\bf{\small{\color{#808080}(ctrl\ +\ s)}}$  
+  <code>@수신 구매자: 안녕하세요, 1 chaos(으)로 올려놓은 Dawn of the Hunt 리그의 테스트 아이템(을)를 구매하고 싶습니다</code>
+&nbsp;<img src=https://github.com/user-attachments/assets/2247163c-c0de-498a-9189-db58c139433f width="70%">  
+&nbsp;![스크린샷 2025-05-20 185733](https://github.com/user-attachments/assets/ad993af9-a16a-4fd2-9bcb-77c22b116620)
 
-- <code>**게임을 실행하지 않은 경우**</code>$\bf{\small{\color{#808080}(메모장에서\ [시:분]\ "구매"\ 입력)}}$  
-&nbsp;<img src=https://github.com/user-attachments/assets/8482996c-1770-4ff6-bee5-7848f634a9c3 width="450" height="461">
+
 
 ### 4. 확인
 - <code>**디스코드**</code> 알림 또는 앱을 실행해 수시로 확인이 가능합니다.  
-&nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/08c92039-6f84-41c1-aba7-9d6b97a8c9b3 width="311" height="600"></p>
+&nbsp;&nbsp;<img src=https://github.com/user-attachments/assets/8af8ac36-aceb-46c5-ba8a-0085439ca10b width="30%"></p>
 
 ## 백그라운드 기능
 #### <code>**메시지**</code>
