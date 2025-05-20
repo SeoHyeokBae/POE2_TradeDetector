@@ -30,14 +30,6 @@ void TextDetectorApplication::Initialize(HWND Input_hWnd, HWND Input_hEditLog, L
 
 void TextDetectorApplication::Run()
 {
-    static FILETIME lastWriteTime = { 0 };
-    static ULONGLONG lastCheckTick = 0;
-
-    ULONGLONG currentTick = GetTickCount64();
-    if (currentTick - lastCheckTick < 100) // 100ms 간격 폴링
-        return;
-    lastCheckTick = currentTick;
-
     if (g_bIsTaskRunning.exchange(true))
         return; // 이미 작업 중이면 바로 종료
 
@@ -59,6 +51,7 @@ void TextDetectorApplication::Run()
                     ParseTradeMessage(LastLine);
                 }
             }
+            g_bIsTaskRunning.store(false);
         });
 }
 
@@ -349,7 +342,7 @@ bool TextDetectorApplication::IsChatLogUpdated()
 
     while (std::getline(ss, line))
     {
-        if (!line.empty())
+        if (!line.empty() && (line.find(L"이 플레이어는 자리비움 상태입니다") == std::wstring::npos))
             streamlastLine = line;
     }
 
@@ -378,4 +371,5 @@ bool TextDetectorApplication::IsChatLogUpdated()
 void TextDetectorApplication::StopRun()
 {
     LastLine = L"";
+    g_bIsTaskRunning.store(false);
 }
